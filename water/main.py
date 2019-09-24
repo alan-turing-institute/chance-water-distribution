@@ -42,17 +42,16 @@ for node_name, node_data in nodes_dict.items():
 
     pollution_values.append(pollution_series[node_name])
 
-x = [(i - min(x)) / (max(x) - min(x)) for i in x]
-y = [(i - min(y)) / (max(y) - min(y)) for i in y]
-
 locations = {}
 i = 0
 for node_name, node_data in nodes_dict.items():
     locations[node_name] = (x[i], y[i])
     i += 1
 
+x_extra_range = (max(x) - min(x)) / 100
+y_extra_range = (max(x) - min(x)) / 100
 graph = from_networkx(G, locations)
-plot = Plot(x_range=Range1d(-0.1, 1.1), y_range=Range1d(-0.1, 1.1))
+plot = Plot(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
 
 # Create nodes and edges
 graph.node_renderer.data_source.data['colors'] = pollution_values
