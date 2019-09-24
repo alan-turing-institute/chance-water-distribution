@@ -29,30 +29,22 @@ with open(filename, 'rb') as input_file:
 slider = Slider(start=0, end=3, value=0, step=1, title="Time")
 button = Button(label='► Play', width=60)
 
+# Create plottable coordinates
+locations = {}
+x = []
+y = []
+for node, node_data in dict(G.nodes).items():
+    locations[node] = (node_data['pos'][0], node_data['pos'][1])
+    x.append(node_data['pos'][0])
+    y.append(node_data['pos'][1])
+x_extra_range = (max(x) - min(x)) / 100
+y_extra_range = (max(x) - min(x)) / 100
+
 def draw_network(pollution_series):
-
     pollution_values = []
+    for node in G.nodes():
+        pollution_values.append(pollution_series[node])
 
-    # Create plottable coordinates
-    x = []
-    y = []
-
-    nodes_dict = dict(G.nodes)
-    for node_name, node_data in nodes_dict.items():
-
-        x.append(node_data['pos'][0])
-        y.append(node_data['pos'][1])
-
-        pollution_values.append(pollution_series[node_name])
-
-    locations = {}
-    i = 0
-    for node_name, node_data in nodes_dict.items():
-        locations[node_name] = (x[i], y[i])
-        i += 1
-
-    x_extra_range = (max(x) - min(x)) / 100
-    y_extra_range = (max(x) - min(x)) / 100
     graph = from_networkx(G, locations)
     plot = Plot(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
 
