@@ -1,0 +1,17 @@
+language: python
+
+# Build matrix
+os:
+  - osx
+python:
+  - 3.6
+
+install:
+  # Install package dependencies
+  - pip install -r requirements-dev.txt
+
+script:
+  # Run pyflakes for error detection
+  - pyflakes *.py water
+  # Check PEP8 compliance (ignoring long lines)
+  - pycodestyle --statistics --ignore=E501 --count *.py water
