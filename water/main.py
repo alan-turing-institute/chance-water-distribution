@@ -24,60 +24,72 @@ with open(filename, 'rb') as input_file:
     pollution = pickle.load(input_file)
 
 # Use 700th timestep of pollution starting at J-10 as an example
-pollution_series = pollution['J-10'].iloc[700]
-pollution_values = []
+# pollution_series = pollution['J-10'].iloc[700]
 
 slider = Slider(start=0, end=3, value=0, step=1, title="Time")
 button = Button(label='► Play', width=60)
 
-# Create plottable coordinates
-x = []
-y = []
+def draw_network(pollution_series):
 
-nodes_dict = dict(G.nodes)
-for node_name, node_data in nodes_dict.items():
+    pollution_values = []
 
-    x.append(node_data['pos'][0])
-    y.append(node_data['pos'][1])
+    # Create plottable coordinates
+    x = []
+    y = []
 
-    pollution_values.append(pollution_series[node_name])
+    nodes_dict = dict(G.nodes)
+    for node_name, node_data in nodes_dict.items():
 
-locations = {}
-i = 0
-for node_name, node_data in nodes_dict.items():
-    locations[node_name] = (x[i], y[i])
-    i += 1
+        x.append(node_data['pos'][0])
+        y.append(node_data['pos'][1])
 
-x_extra_range = (max(x) - min(x)) / 100
-y_extra_range = (max(x) - min(x)) / 100
-graph = from_networkx(G, locations)
-plot = Plot(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
+        pollution_values.append(pollution_series[node_name])
 
-# Create nodes and edges
-graph.node_renderer.data_source.data['colors'] = pollution_values
-# TODO: set a constant value for the max of the color range
-graph.node_renderer.glyph = Circle(size=5, fill_color=linear_cmap('colors', 'Spectral8', min(pollution_values), max(pollution_values)))
-graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
+    locations = {}
+    i = 0
+    for node_name, node_data in nodes_dict.items():
+        locations[node_name] = (x[i], y[i])
+        i += 1
 
-# green hover for both nodes and edges
-graph.node_renderer.hover_glyph = Circle(size=5, fill_color='#abdda4')
-graph.edge_renderer.hover_glyph = MultiLine(line_color='#abdda4', line_width=1)
+    x_extra_range = (max(x) - min(x)) / 100
+    y_extra_range = (max(x) - min(x)) / 100
+    graph = from_networkx(G, locations)
+    plot = Plot(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
 
-# When we hover over nodes, highlight adjecent edges too
-graph.selection_policy = NodesAndLinkedEdges()
-graph.inspection_policy = NodesAndLinkedEdges()
+    # Create nodes and edges
+    graph.node_renderer.data_source.data['colors'] = pollution_values
+    # TODO: set a constant value for the max of the color range
+    graph.node_renderer.glyph = Circle(size=5, fill_color=linear_cmap('colors', 'Spectral8', min(pollution_values), max(pollution_values)))
+    graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
 
-TOOLTIPS = [
-    ("Type", "@type"),
-    ("Name", "@name"),
-]
+    # green hover for both nodes and edges
+    graph.node_renderer.hover_glyph = Circle(size=5, fill_color='#abdda4')
+    graph.edge_renderer.hover_glyph = MultiLine(line_color='#abdda4', line_width=1)
 
-plot.add_tools(HoverTool(tooltips=TOOLTIPS))
+    # When we hover over nodes, highlight adjecent edges too
+    graph.selection_policy = NodesAndLinkedEdges()
+    graph.inspection_policy = NodesAndLinkedEdges()
 
-plot.renderers.append(graph)
+    TOOLTIPS = [
+        ("Type", "@type"),
+        ("Name", "@name"),
+    ]
+
+    plot.add_tools(HoverTool(tooltips=TOOLTIPS))
+
+    plot.renderers.append(graph)
+
+    return plot
+
+plots = []
+count = 0  # TODO: save all plots instead of just a few
+for index, pollution_series in pollution['J-10'].iterrows():  # < 1 min for all of J-10 pollution start timesteps
+    if count % 100 == 0:
+        plots.append(draw_network(pollution_series))
+    count += 1
 
 layout = layout([
-    [plot],
+    [plots[3]],
     [slider, button],
 ], sizing_mode='scale_width')
 
