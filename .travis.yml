@@ -1,8 +1,10 @@
+sudo: enabled
+dist: xenial
 language: python
 
 # Build matrix
 os:
-  - osx
+  - linux
 python:
   - 3.6
 
@@ -12,6 +14,6 @@ install:
 
 script:
   # Run pyflakes for error detection
-  - pyflakes *.py water
+  - pyflakes water
   # Check PEP8 compliance (ignoring long lines)
-  - pycodestyle --statistics --ignore=E501 --count *.py water
+  - pycodestyle --statistics --ignore=E501 --count water
