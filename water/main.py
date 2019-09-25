@@ -2,7 +2,6 @@ from bokeh.io import curdoc
 from bokeh.layouts import layout
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import Range1d, Plot, MultiLine, Circle, HoverTool, Slider, Button
-from bokeh.palettes import Spectral4
 from bokeh.transform import linear_cmap
 import pickle
 import wntr
@@ -40,6 +39,7 @@ for node, node_data in dict(G.nodes).items():
 x_extra_range = (max(x) - min(x)) / 100
 y_extra_range = (max(x) - min(x)) / 100
 
+
 def draw_network(pollution_series):
     pollution_values = []
     for node in G.nodes():
@@ -72,6 +72,7 @@ def draw_network(pollution_series):
     plot.renderers.append(graph)
 
     return plot
+
 
 plots = []
 count = 0  # TODO: save all plots instead of just a few
