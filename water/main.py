@@ -7,8 +7,47 @@ import pickle
 import wntr
 from os.path import dirname, join
 
+
+callback_id = None
+
+
+def get_pollution_values(pollution_series):
+    """Get a pollution value for each node, ordered the same as the x,y node coordinates"""
+    pollution_values = []
+    for node in G.nodes():
+        pollution_values.append(pollution_series[node])
+    return pollution_values
+
+
+def slider_update(attrname, old, new):
+    """Update the pollution data used in graph when slider moved"""
+    timestep = slider.value
+    pollution_values = get_pollution_values(pollution['J-10'].loc[timestep])
+    graph.node_renderer.data_source.data['colors'] = pollution_values
+
+
+def animate_update():
+    """Move the slider by one step"""
+    timestep = slider.value + step
+    if timestep > times[-1]:
+        timestep = times[0]
+    slider.value = timestep
+
+
+def animate():
+    """Move the slider every 30 milliseconds on play button click"""
+    global callback_id
+    if button.label == '► Play':
+        button.label = '❚❚ Pause'
+        callback_id = curdoc().add_periodic_callback(animate_update, 30)
+    else:
+        button.label = '► Play'
+        curdoc().remove_periodic_callback(callback_id)
+
 # load .inp file
 filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks/ky2.inp')
+
+# Create water network
 wn = wntr.network.WaterNetworkModel(filename)
 
 # Get the NetworkX graph
@@ -17,29 +56,24 @@ G = wn.get_graph()
 for node in G.nodes():  # add the node name as an attribute, so we can use with tooltips
     G.node[node]['name'] = node
 
-# Load dynamics
+# Load pollution dynamics
 filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks/Ky2.pkl')
 with open(filename, 'rb') as input_file:
     pollution = pickle.load(input_file)
 
-# Create plottable coordinates
+# Create plottable coordinates for each network node
 locations = {}
 x = []
 y = []
-for node, node_data in dict(G.nodes).items():
+for node, node_data in G.nodes().items():
     locations[node] = (node_data['pos'][0], node_data['pos'][1])
     x.append(node_data['pos'][0])
     y.append(node_data['pos'][1])
+# So nodes not at edge of plot:
 x_extra_range = (max(x) - min(x)) / 100
 y_extra_range = (max(x) - min(x)) / 100
 
-
-def get_pollution_values(pollution_series):
-    pollution_values = []
-    for node in G.nodes():
-        pollution_values.append(pollution_series[node])
-    return pollution_values
-
+# Use the max and min pollution values for the color range
 max_pol = max(pollution['J-10'].max())
 min_pol = min(pollution['J-10'].min())
 
@@ -77,30 +111,8 @@ TOOLTIPS = [
 
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
-def slider_update(attrname, old, new):
-    timestep = slider.value
-    pollution_values = get_pollution_values(pollution['J-10'].loc[timestep])
-    graph.node_renderer.data_source.data['colors'] = pollution_values
-
 slider = Slider(start=times[0], end=times[-1], value=times[0], step=step, title="Time step")
 slider.on_change('value', slider_update)
-
-def animate_update():
-    timestep = slider.value + step
-    if timestep > times[-1]:
-        timestep = times[0]
-    slider.value = timestep
-
-callback_id = None
-
-def animate():
-    global callback_id
-    if button.label == '► Play':
-        button.label = '❚❚ Pause'
-        callback_id = curdoc().add_periodic_callback(animate_update, 30)
-    else:
-        button.label = '► Play'
-        curdoc().remove_periodic_callback(callback_id)
 
 button = Button(label='► Play')
 button.on_click(animate)
