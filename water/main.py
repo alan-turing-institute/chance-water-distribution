@@ -1,7 +1,7 @@
 from bokeh.io import curdoc
 from bokeh.layouts import layout
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import Range1d, Plot, MultiLine, Circle, HoverTool, Slider, Button, ColumnDataSource
+from bokeh.models import Range1d, Plot, MultiLine, Circle, HoverTool, Slider, Button
 from bokeh.transform import linear_cmap
 import pickle
 import wntr
@@ -44,6 +44,7 @@ def animate():
     else:
         button.label = '► Play'
         curdoc().remove_periodic_callback(callback_id)
+
 
 # load .inp file
 filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks/ky2.inp')
