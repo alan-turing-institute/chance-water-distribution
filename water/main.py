@@ -43,7 +43,7 @@ def get_pollution_values(pollution_series):
 max_pol = max(pollution['J-10'].max())
 min_pol = min(pollution['J-10'].min())
 
-step = 30  # minimum step is 30 because each index is a 30s time step
+step = pollution['J-10'].index[1] - pollution['J-10'].index[0]
 times = []
 for index, pollution_series in pollution['J-10'].iterrows():  # < 1 min for all of J-10 pollution start timesteps
     times.append(index)
@@ -102,13 +102,13 @@ def animate():
         button.label = '► Play'
         curdoc().remove_periodic_callback(callback_id)
 
-button = Button(label='► Play', width=60)
+button = Button(label='► Play')
 button.on_click(animate)
 
 layout = layout([
     [plot],
     [slider, button],
-], sizing_mode='scale_width')
+])
 
 curdoc().add_root(layout)
 curdoc().title = "Kentucky water distribution Ky2"
