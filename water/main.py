@@ -1,9 +1,10 @@
 from bokeh.io import curdoc
 from bokeh.layouts import layout
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button
+from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, Label
 from bokeh.plotting import figure
 from bokeh.transform import linear_cmap
+import datetime
 import pickle
 import wntr
 from os.path import dirname, join
@@ -24,6 +25,7 @@ def get_pollution_values(pollution_series):
 def slider_update(attrname, old, new):
     """Update the pollution data used in graph when slider moved"""
     timestep = slider.value
+    label.text = str(datetime.timedelta(seconds=int(timestep)))
     pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
     graph.node_renderer.data_source.data['colors'] = pollution_values
 
@@ -89,9 +91,13 @@ for index, pollution_series in pollution[start_node].iterrows():
 pollution_values = get_pollution_values(pollution[start_node].loc[times[0]])
 
 # Create the plot with wiggle room:
-x_extra_range = (max(x) - min(x)) / 100
-y_extra_range = (max(x) - min(x)) / 100
+x_extra_range = (max(x) - min(x)) / 20
+y_extra_range = (max(y) - min(y)) / 20
 plot = figure(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
+
+# Add a timer label in bottom left of plot
+label = Label(x=min(x) - x_extra_range, y=min(y) - y_extra_range, text=str(datetime.timedelta(seconds=times[0])), text_font_size='35pt', text_color='#eeeeee')
+plot.add_layout(label)
 
 # Create bokeh graph from the NetworkX object
 graph = from_networkx(G, locations)
@@ -121,7 +127,7 @@ TOOLTIPS = [
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Create the layout with slider and play button
-slider = Slider(start=times[0], end=times[-1], value=times[0], step=step, title="Time step")
+slider = Slider(start=times[0], end=times[-1], value=times[0], step=step, title="Time (s)")
 slider.on_change('value', slider_update)
 
 button = Button(label='► Play')
