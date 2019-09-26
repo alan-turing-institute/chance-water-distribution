@@ -43,15 +43,11 @@ def get_pollution_values(pollution_series):
 max_pol = max(pollution['J-10'].max())
 min_pol = min(pollution['J-10'].min())
 
-# plots = []
 step = 30  # minimum step is 30 because each index is a 30s time step
 times = []
 for index, pollution_series in pollution['J-10'].iterrows():  # < 1 min for all of J-10 pollution start timesteps
-    # if index % step == 0:
-        # plots.append(draw_network(pollution_series))
     times.append(index)
 
-# source = ColumnDataSource(data={'colors': get_pollution_values(pollution['J-10'].loc[times[0]])})
 pollution_values = get_pollution_values(pollution['J-10'].loc[times[0]])
 
 plot = Plot(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
@@ -85,13 +81,29 @@ def slider_update(attrname, old, new):
     timestep = slider.value
     pollution_values = get_pollution_values(pollution['J-10'].loc[timestep])
     graph.node_renderer.data_source.data['colors'] = pollution_values
-    # plot.renderers.append(generate_graph(pollution_values))
-    # source.data = {'colors': pollution_values}
 
 slider = Slider(start=times[0], end=times[-1], value=times[0], step=step, title="Time step")
 slider.on_change('value', slider_update)
 
+def animate_update():
+    timestep = slider.value + step
+    if timestep > times[-1]:
+        timestep = times[0]
+    slider.value = timestep
+
+callback_id = None
+
+def animate():
+    global callback_id
+    if button.label == '► Play':
+        button.label = '❚❚ Pause'
+        callback_id = curdoc().add_periodic_callback(animate_update, 30)
+    else:
+        button.label = '► Play'
+        curdoc().remove_periodic_callback(callback_id)
+
 button = Button(label='► Play', width=60)
+button.on_click(animate)
 
 layout = layout([
     [plot],
@@ -99,4 +111,4 @@ layout = layout([
 ], sizing_mode='scale_width')
 
 curdoc().add_root(layout)
-# curdoc().title = "Gapminder"
+curdoc().title = "Kentucky water distribution Ky2"
