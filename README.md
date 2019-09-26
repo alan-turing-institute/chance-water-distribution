@@ -28,4 +28,12 @@ The data for contamination spread scenarios is pre-computed and coupled with inf
 
 ### Secondary features
 
-1. A version of the app that water networks can input their own water networks and contamination scenario data to, by uploading files in a format specified by the app
+1. Visualization of Weisi/Alessio's Neural Network's decision making process for reducing a water network to a set of critical nodes
+2. A version of the app that water networks can input their own water networks and contamination scenario data to, by uploading files in a format specified by the app
+
+Bokeh App
+-------
+
+1. Clone the repository
+2. Install the requirements in `requirements.txt`
+3. Run bokeh server from top dir of the repo with `bokeh serve --show water`
