@@ -1,7 +1,8 @@
 from bokeh.io import curdoc
 from bokeh.layouts import layout
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import Range1d, Plot, MultiLine, Circle, HoverTool, Slider, Button
+from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button
+from bokeh.plotting import figure
 from bokeh.transform import linear_cmap
 import pickle
 import wntr
@@ -90,7 +91,7 @@ pollution_values = get_pollution_values(pollution[start_node].loc[times[0]])
 # Create the plot with wiggle room:
 x_extra_range = (max(x) - min(x)) / 100
 y_extra_range = (max(x) - min(x)) / 100
-plot = Plot(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
+plot = figure(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
 
 # Create bokeh graph from the NetworkX object
 graph = from_networkx(G, locations)
