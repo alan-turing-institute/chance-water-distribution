@@ -9,6 +9,7 @@ from os.path import dirname, join
 
 
 callback_id = None
+start_node = 'J-10'
 
 
 def get_pollution_values(pollution_series):
@@ -22,7 +23,7 @@ def get_pollution_values(pollution_series):
 def slider_update(attrname, old, new):
     """Update the pollution data used in graph when slider moved"""
     timestep = slider.value
-    pollution_values = get_pollution_values(pollution['J-10'].loc[timestep])
+    pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
     graph.node_renderer.data_source.data['colors'] = pollution_values
 
 
@@ -69,48 +70,55 @@ for node, node_data in G.nodes().items():
     locations[node] = (node_data['pos'][0], node_data['pos'][1])
     x.append(node_data['pos'][0])
     y.append(node_data['pos'][1])
-# So nodes not at edge of plot:
-x_extra_range = (max(x) - min(x)) / 100
-y_extra_range = (max(x) - min(x)) / 100
 
 # Use the max and min pollution values for the color range
-max_pol = max(pollution['J-10'].max())
-min_pol = min(pollution['J-10'].min())
+max_pol = max(pollution[start_node].max())
+min_pol = min(pollution[start_node].min())
 
-step = pollution['J-10'].index[1] - pollution['J-10'].index[0]
+# Get the timstep size for the slider from the pollution df
+step = pollution[start_node].index[1] - pollution[start_node].index[0]
+
+# Get a list of the timestep indices we have pollution data for
 times = []
-for index, pollution_series in pollution['J-10'].iterrows():  # < 1 min for all of J-10 pollution start timesteps
+for index, pollution_series in pollution[start_node].iterrows():
     times.append(index)
 
-pollution_values = get_pollution_values(pollution['J-10'].loc[times[0]])
+# Get pollution values for first timestep
+pollution_values = get_pollution_values(pollution[start_node].loc[times[0]])
 
+# Create the plot with wiggle room:
+x_extra_range = (max(x) - min(x)) / 100
+y_extra_range = (max(x) - min(x)) / 100
 plot = Plot(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
 
+# Create bokeh graph from the NetworkX object
 graph = from_networkx(G, locations)
 
-# Create nodes and edges
+# Create nodes and set the node colors by pollution level
 graph.node_renderer.data_source.data['colors'] = pollution_values
-# TODO: set a constant value for the max of the color range
 graph.node_renderer.glyph = Circle(size=5, fill_color=linear_cmap('colors', 'Spectral8', min_pol, max_pol))
+
+# Create edges
 graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
 
-# green hover for both nodes and edges
+# Green hover for both nodes and edges
 graph.node_renderer.hover_glyph = Circle(size=5, fill_color='#abdda4')
 graph.edge_renderer.hover_glyph = MultiLine(line_color='#abdda4', line_width=1)
 
-# When we hover over nodes, highlight adjecent edges too
+# When we hover over nodes, highlight adjacent edges too
 graph.selection_policy = NodesAndLinkedEdges()
 graph.inspection_policy = NodesAndLinkedEdges()
 
 plot.renderers.append(graph)
 
+# Show node names and type (e.g. junction, tank) on hover
 TOOLTIPS = [
     ("Type", "@type"),
     ("Name", "@name"),
 ]
-
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
+# Create the layout with slider and play button
 slider = Slider(start=times[0], end=times[-1], value=times[0], step=step, title="Time step")
 slider.on_change('value', slider_update)
 
