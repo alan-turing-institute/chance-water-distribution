@@ -1,3 +1,5 @@
 bokeh
+colorcet
 networkx
+numpy
 wntr
