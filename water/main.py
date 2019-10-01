@@ -5,7 +5,9 @@ from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, 
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
+import colorcet as cc
 import datetime
+import numpy as np
 import pickle
 import wntr
 from os.path import dirname, join
@@ -81,7 +83,8 @@ for node, node_data in G.nodes().items():
 
 # Use the max and min pollution values for the color range
 max_pol = max(pollution[start_node].max())
-min_pol = min(pollution[start_node].min())
+# min_pol = min(pollution[start_node].min())
+min_pol = np.nanmin(pollution['J-10'][pollution['J-10'] > 0].min())  # min pollution above zero
 
 # Get the timstep size for the slider from the pollution df
 step = pollution[start_node].index[1] - pollution[start_node].index[0]
@@ -112,12 +115,12 @@ graph = from_networkx(G, locations)
 
 # Create nodes and set the node colors by pollution level
 graph.node_renderer.data_source.data['colors'] = pollution_values
-color_mapper = log_cmap('colors', 'Spectral11', min_pol, max_pol)
+color_mapper = log_cmap('colors', cc.coolwarm, min_pol, max_pol)
 graph.node_renderer.glyph = Circle(size=5, fill_color=color_mapper)
 
 # Add color bar as legend
 color_bar = ColorBar(color_mapper=color_mapper['transform'], ticker=LogTicker(), location=(0,0))
-plot.add_layout(color_bar, 'left')
+plot.add_layout(color_bar, 'right')
 
 # Create edges
 graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
