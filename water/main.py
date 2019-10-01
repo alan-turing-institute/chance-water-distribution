@@ -1,7 +1,7 @@
 from bokeh.io import curdoc
 from bokeh.layouts import layout
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, Label, ColorBar, LogTicker
+from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, ColorBar, LogTicker, Title
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -28,7 +28,7 @@ def get_pollution_values(pollution_series):
 def slider_update(attrname, old, new):
     """Update the pollution data used in graph when slider moved"""
     timestep = slider.value
-    label.text = str(datetime.timedelta(seconds=int(timestep)))
+    timer.text = str(datetime.timedelta(seconds=int(timestep)))
     pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
     graph.node_renderer.data_source.data['colors'] = pollution_values
 
@@ -84,7 +84,7 @@ for node, node_data in G.nodes().items():
 # Use the max and min pollution values for the color range
 max_pol = max(pollution[start_node].max())
 # min_pol = min(pollution[start_node].min())
-min_pol = np.nanmin(pollution['J-10'][pollution['J-10'] > 0].min())  # min pollution above zero
+min_pol = np.nanmin(pollution[start_node][pollution[start_node] > 0].min())  # min pollution above zero
 
 # Get the timstep size for the slider from the pollution df
 step = pollution[start_node].index[1] - pollution[start_node].index[0]
@@ -106,9 +106,9 @@ plot = figure(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y
 tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
 
-# Add a timer label in bottom left of plot
-label = Label(x=min(x), y=max(y), text=str(datetime.timedelta(seconds=times[0])), text_font_size='35pt', text_color='grey')
-plot.add_layout(label)
+# Add a timer label under plot
+timer = Title(text=str(datetime.timedelta(seconds=times[0])), text_font_size='35pt', text_color='grey')
+plot.add_layout(timer, 'below')
 
 # Create bokeh graph from the NetworkX object
 graph = from_networkx(G, locations)
