@@ -104,7 +104,7 @@ tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
 
 # Add a timer label in bottom left of plot
-label = Label(x=min(x) - x_extra_range, y=min(y) - y_extra_range, text=str(datetime.timedelta(seconds=times[0])), text_font_size='35pt', text_color='#eeeeee')
+label = Label(x=min(x), y=max(y), text=str(datetime.timedelta(seconds=times[0])), text_font_size='35pt', text_color='grey')
 plot.add_layout(label)
 
 # Create bokeh graph from the NetworkX object
