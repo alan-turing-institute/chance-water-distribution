@@ -3,6 +3,7 @@ from bokeh.layouts import layout
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, Label
 from bokeh.plotting import figure
+from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import linear_cmap
 import datetime
 import pickle
@@ -71,9 +72,12 @@ locations = {}
 x = []
 y = []
 for node, node_data in G.nodes().items():
-    locations[node] = (node_data['pos'][0], node_data['pos'][1])
-    x.append(node_data['pos'][0])
-    y.append(node_data['pos'][1])
+    # Adjust the coordinates to roughly lay over Louisville, Kentucky
+    xd = node_data['pos'][0] - 13620000
+    yd = node_data['pos'][1] + 1170000
+    locations[node] = (xd, yd)
+    x.append(xd)
+    y.append(yd)
 
 # Use the max and min pollution values for the color range
 max_pol = max(pollution[start_node].max())
@@ -94,6 +98,10 @@ pollution_values = get_pollution_values(pollution[start_node].loc[times[0]])
 x_extra_range = (max(x) - min(x)) / 20
 y_extra_range = (max(y) - min(y)) / 20
 plot = figure(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range), y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range))
+
+# Add map to plot
+tile_provider = get_provider(Vendors.CARTODBPOSITRON)
+plot.add_tile(tile_provider)
 
 # Add a timer label in bottom left of plot
 label = Label(x=min(x) - x_extra_range, y=min(y) - y_extra_range, text=str(datetime.timedelta(seconds=times[0])), text_font_size='35pt', text_color='#eeeeee')
