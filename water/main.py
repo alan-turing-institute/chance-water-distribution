@@ -1,10 +1,10 @@
 from bokeh.io import curdoc
 from bokeh.layouts import layout
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, Label
+from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, Label, ColorBar, LogTicker, LogColorMapper
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
-from bokeh.transform import linear_cmap
+from bokeh.transform import log_cmap
 import datetime
 import pickle
 import wntr
@@ -112,7 +112,12 @@ graph = from_networkx(G, locations)
 
 # Create nodes and set the node colors by pollution level
 graph.node_renderer.data_source.data['colors'] = pollution_values
-graph.node_renderer.glyph = Circle(size=5, fill_color=linear_cmap('colors', 'Spectral8', min_pol, max_pol))
+color_mapper = log_cmap('colors', 'Spectral11', min_pol, max_pol)
+graph.node_renderer.glyph = Circle(size=5, fill_color=color_mapper)
+
+# Add color bar as legend
+color_bar = ColorBar(color_mapper=color_mapper['transform'], ticker=LogTicker(), location=(0,0))
+plot.add_layout(color_bar, 'left')
 
 # Create edges
 graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
