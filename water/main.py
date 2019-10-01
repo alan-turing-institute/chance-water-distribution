@@ -1,7 +1,7 @@
 from bokeh.io import curdoc
 from bokeh.layouts import layout
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, Label, ColorBar, LogTicker, LogColorMapper
+from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, Label, ColorBar, LogTicker
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -119,7 +119,7 @@ color_mapper = log_cmap('colors', cc.coolwarm, min_pol, max_pol)
 graph.node_renderer.glyph = Circle(size=5, fill_color=color_mapper)
 
 # Add color bar as legend
-color_bar = ColorBar(color_mapper=color_mapper['transform'], ticker=LogTicker(), label_standoff=12, location=(0,0))
+color_bar = ColorBar(color_mapper=color_mapper['transform'], ticker=LogTicker(), label_standoff=12, location=(0, 0))
 plot.add_layout(color_bar, 'right')
 
 # Create edges
