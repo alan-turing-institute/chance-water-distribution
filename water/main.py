@@ -1,5 +1,5 @@
 from bokeh.io import curdoc
-from bokeh.layouts import layout
+from bokeh.layouts import layout, gridplot, column, row
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, ColorBar, LogTicker, Title
 from bokeh.plotting import figure
@@ -129,7 +129,8 @@ graph = from_networkx(G, locations)
 # Create nodes and set the node colors by pollution level
 graph.node_renderer.data_source.data['colors'] = pollution_values
 color_mapper = log_cmap('colors', cc.coolwarm, min_pol, max_pol)
-graph.node_renderer.glyph = Circle(size=5, fill_color=color_mapper)
+node_size = 10
+graph.node_renderer.glyph = Circle(size=node_size, fill_color=color_mapper)
 
 # Add color bar as legend
 color_bar = ColorBar(color_mapper=color_mapper['transform'], ticker=LogTicker(), label_standoff=12, location=(0, 0))
@@ -139,7 +140,7 @@ plot.add_layout(color_bar, 'right')
 graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
 
 # Green hover for both nodes and edges
-graph.node_renderer.hover_glyph = Circle(size=5, fill_color='#abdda4')
+graph.node_renderer.hover_glyph = Circle(size=node_size, fill_color='#abdda4')
 graph.edge_renderer.hover_glyph = MultiLine(line_color='#abdda4', line_width=1)
 
 # When we hover over nodes, highlight adjacent edges too
@@ -161,13 +162,15 @@ plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 slider = Slider(start=times[0], end=times[-1], value=times[0], step=step, title="Time (s)")
 slider.on_change('value', slider_update)
 
-button = Button(label='► Play')
+button = Button(label='► Play', button_type="success")
+
 button.on_click(animate)
 
-layout = layout([
-    [plot],
-    [slider, button],
-])
+layout = layout(
+    column(plot, sizing_mode="scale_both"),
+    column(button, slider, sizing_mode="scale_width"),
+    sizing_mode='stretch_both'
+    )
 
 curdoc().add_root(layout)
 curdoc().title = "Kentucky water distribution Ky2"
