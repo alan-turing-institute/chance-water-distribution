@@ -59,10 +59,23 @@ filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks
 wn = wntr.network.WaterNetworkModel(filename)
 
 # Get the NetworkX graph
-G = wn.get_graph()
+G = wn.get_graph().to_undirected()
 
-for node in G.nodes():  # add the node name as an attribute, so we can use with tooltips
+# Add the node name as an attribute, so we can use with tooltips
+# Also add the names of connected nodes and edge names
+for node in G.nodes():
     G.node[node]['name'] = node
+    pipes = dict(G.adj[node])
+    connected_str = ""
+    i = 0
+    for connected_node, pipe_info in pipes.items():
+        if i > 0:
+            connected_str = connected_str + "| "
+        connected_str = connected_str + connected_node + ": "
+        for pipe, info in pipe_info.items():
+            connected_str = connected_str + pipe + " "
+        i+=1
+    G.node[node]['connected'] = connected_str
 
 # Load pollution dynamics
 filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks/Ky2.pkl')
@@ -139,6 +152,8 @@ plot.renderers.append(graph)
 TOOLTIPS = [
     ("Type", "@type"),
     ("Name", "@name"),
+    ("Position", "@pos"),
+    ("Connected", "@connected"),
 ]
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
