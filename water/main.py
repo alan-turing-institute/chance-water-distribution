@@ -136,7 +136,8 @@ tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
 
 # Add a timer label under plot
-timer = Title(text=str(datetime.timedelta(seconds=first_timestep)), text_font_size='35pt', text_color='grey')
+timer_text = "Pollution Spread from [SELECT INJECTION LOCATION]"
+timer = Title(text=timer_text, text_font_size='35pt', text_color='grey')
 plot.add_layout(timer, 'below')
 
 # Create bokeh graph from the NetworkX object
