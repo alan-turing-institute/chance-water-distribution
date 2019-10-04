@@ -25,19 +25,11 @@ def get_pollution_values(pollution_series):
     return pollution_values
 
 
-def dropdown_update(attrname, old, new):
+def update(attrname, old, new):
     """Choose the node the pollution injection starts at"""
     start_node = dropdown.value
     timestep = slider.value
-    pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
-    graph.node_renderer.data_source.data['colors'] = pollution_values
-
-
-def slider_update(attrname, old, new):
-    """Update the pollution data used in graph when slider moved"""
-    start_node = dropdown.value
-    timestep = slider.value
-    timer.text = str(datetime.timedelta(seconds=int(timestep)))
+    timer.text = "Pollution Spread from " + start_node + ";  Time - " + str(datetime.timedelta(seconds=int(timestep)))
     pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
     graph.node_renderer.data_source.data['colors'] = pollution_values
 
@@ -184,7 +176,7 @@ plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Create the layout with time slider, play button and pollution start menu
 slider = Slider(start=first_timestep, end=times[-1], value=first_timestep, step=step, title="Time (s)")
-slider.on_change('value', slider_update)
+slider.on_change('value', update)
 
 button = Button(label='► Play', button_type="success")
 button.on_click(animate)
@@ -194,7 +186,7 @@ for node in pollution.keys():
     if node != 'chemical_start_time':
         menu.append((node, node))
 dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
-dropdown.on_change('value', dropdown_update)
+dropdown.on_change('value', update)
 
 layout = column(
     row(dropdown, height=50, sizing_mode="stretch_width"),
