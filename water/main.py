@@ -196,7 +196,8 @@ TOOLTIPS = [
     ("Position", "@pos"),
     ("Elevation", "@elevation"),
     ("Connected", "@connected"),
-    ("Base Demand", "@demand")
+    ("Base Demand", "@demand"),
+    ("Pollution Level", "@colors")
 ]
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
