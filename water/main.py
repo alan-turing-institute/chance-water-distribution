@@ -196,8 +196,9 @@ dropdown = Dropdown(label="Pollution Injection Location", button_type="primary",
 dropdown.on_change('value', dropdown_update)
 
 layout = column(
+    row(dropdown, height=50, sizing_mode="stretch_width"),
     plot,
-    row(dropdown, button, slider, height=50, sizing_mode="stretch_width"),
+    row(button, slider, height=50, sizing_mode="stretch_width"),
     sizing_mode="stretch_both"
 )
 
