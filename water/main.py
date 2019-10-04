@@ -1,5 +1,5 @@
 from bokeh.io import curdoc
-from bokeh.layouts import layout, gridplot, column, row
+from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, ColorBar, LogTicker, Title
 from bokeh.plotting import figure
@@ -74,7 +74,7 @@ for node in G.nodes():
         connected_str = connected_str + connected_node + ": "
         for pipe, info in pipe_info.items():
             connected_str = connected_str + pipe + " "
-        i+=1
+        i += 1
     G.node[node]['connected'] = connected_str
 
 # Load pollution dynamics
@@ -166,11 +166,11 @@ button = Button(label='► Play', button_type="success")
 
 button.on_click(animate)
 
-layout = layout(
-    column(plot, sizing_mode="scale_both"),
-    column(button, slider, sizing_mode="scale_width"),
-    sizing_mode='stretch_both'
-    )
+layout = column(
+    plot,
+    row(button, slider, height=50, sizing_mode="stretch_width"),
+    sizing_mode="stretch_both"
+)
 
 curdoc().add_root(layout)
 curdoc().title = "Kentucky water distribution Ky2"
