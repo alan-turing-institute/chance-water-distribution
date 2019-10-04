@@ -123,10 +123,10 @@ for index, pollution_series in pollution[start_node].iterrows():
     times.append(index)
 
 # Set first value of timestep
-timestep = times[0]
+first_timestep = times[0]
 
 # Get pollution values for first timestep
-pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
+pollution_values = get_pollution_values(pollution[start_node].loc[first_timestep])
 
 # Create the plot with wiggle room:
 x_extra_range = (max(x) - min(x)) / 20
@@ -138,7 +138,7 @@ tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
 
 # Add a timer label under plot
-timer = Title(text=str(datetime.timedelta(seconds=timestep)), text_font_size='35pt', text_color='grey')
+timer = Title(text=str(datetime.timedelta(seconds=first_timestep)), text_font_size='35pt', text_color='grey')
 plot.add_layout(timer, 'below')
 
 # Create bokeh graph from the NetworkX object
@@ -177,7 +177,7 @@ TOOLTIPS = [
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Create the layout with time slider, play button and pollution start menu
-slider = Slider(start=timestep, end=times[-1], value=timestep, step=step, title="Time (s)")
+slider = Slider(start=first_timestep, end=times[-1], value=first_timestep, step=step, title="Time (s)")
 slider.on_change('value', slider_update)
 
 button = Button(label='► Play', button_type="success")
