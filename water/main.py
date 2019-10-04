@@ -1,7 +1,7 @@
 from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, ColorBar, LogTicker, Title
+from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, ColorBar, LogTicker, Title, ColumnDataSource
 from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -9,9 +9,11 @@ from bokeh.transform import log_cmap
 import colorcet as cc
 import datetime
 import numpy as np
-import pickle
-import wntr
 from os.path import dirname, join
+import pickle
+from statistics import mean
+import wntr
+
 
 
 callback_id = None
@@ -64,8 +66,22 @@ G = wn.get_graph().to_undirected()
 
 # Add the node name as an attribute, so we can use with tooltips
 # Also add the names of connected nodes and edge names
+all_base_demands = []
 for node in G.nodes():
     G.node[node]['name'] = node
+    try:
+        G.node[node]['elevation'] = wn.query_node_attribute('elevation')[node]
+    except:
+        G.node[node]['elevation'] = 'N/A'
+    try:
+        base_demands = []
+        for timeseries in wn.get_node(node).demand_timeseries_list:
+            base_demands.append(timeseries.base_value)
+        base_demand = mean(base_demands)
+        G.node[node]['demand'] = base_demand
+        all_base_demands.append(base_demand)
+    except:
+        all_base_demands.append(0.0)  # TODO: this is for the nodes that don't have a demand including Resevoirs, perhaps change
     pipes = dict(G.adj[node])
     connected_str = ""
     i = 0
@@ -77,6 +93,8 @@ for node in G.nodes():
             connected_str = connected_str + pipe + " "
         i += 1
     G.node[node]['connected'] = connected_str
+
+all_base_demands = [float(i)/max(all_base_demands) for i in all_base_demands]
 
 # Load pollution dynamics
 filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks/Ky2.pkl')
@@ -147,6 +165,8 @@ graph = from_networkx(G, locations)
 graph.node_renderer.data_source.data['colors'] = pollution_values
 color_mapper = log_cmap('colors', cc.coolwarm, min_pol, max_pol)
 node_size = 10
+node_sizes = [i * node_size for i in all_base_demands]
+# graph.node_renderer.data_source.data['index'] = node_sizes
 graph.node_renderer.glyph = Circle(size=node_size, fill_color=color_mapper)
 
 # Add color bar as legend
@@ -171,7 +191,9 @@ TOOLTIPS = [
     ("Type", "@type"),
     ("Name", "@name"),
     ("Position", "@pos"),
+    ("Elevation", "@elevation"),
     ("Connected", "@connected"),
+    ("Base Demand", "@demand")
 ]
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
