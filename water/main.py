@@ -17,6 +17,8 @@ import wntr
 
 
 callback_id = None
+base_node_size = 8
+node_demand_weighting = 15
 
 
 def get_pollution_values(pollution_series):
@@ -65,6 +67,7 @@ wn = wntr.network.WaterNetworkModel(filename)
 G = wn.get_graph().to_undirected()
 
 # Add the node name as an attribute, so we can use with tooltips
+# Also add info about the demand and elevation
 # Also add the names of connected nodes and edge names
 all_base_demands = []
 for node in G.nodes():
@@ -81,7 +84,8 @@ for node in G.nodes():
         G.node[node]['demand'] = base_demand
         all_base_demands.append(base_demand)
     except:
-        all_base_demands.append(0.0)  # TODO: this is for the nodes that don't have a demand including Resevoirs, perhaps change
+        all_base_demands.append(0.0)  # Nodes with no demand will not resize from the base_node_size
+        G.node[node]['demand'] = "N/A"
     pipes = dict(G.adj[node])
     connected_str = ""
     i = 0
@@ -161,13 +165,12 @@ plot.add_layout(timer, 'below')
 # Create bokeh graph from the NetworkX object
 graph = from_networkx(G, locations)
 
-# Create nodes and set the node colors by pollution level
+# Create nodes, set the node colors by pollution level and size by base demand
 graph.node_renderer.data_source.data['colors'] = pollution_values
 color_mapper = log_cmap('colors', cc.coolwarm, min_pol, max_pol)
-node_size = 10
-node_sizes = [i * node_size for i in all_base_demands]
-# graph.node_renderer.data_source.data['index'] = node_sizes
-graph.node_renderer.glyph = Circle(size=node_size, fill_color=color_mapper)
+node_sizes = [(i * node_demand_weighting) + base_node_size for i in all_base_demands]
+graph.node_renderer.data_source.data['size'] = node_sizes
+graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper)
 
 # Add color bar as legend
 color_bar = ColorBar(color_mapper=color_mapper['transform'], ticker=LogTicker(), label_standoff=12, location=(0, 0))
@@ -177,7 +180,7 @@ plot.add_layout(color_bar, 'right')
 graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
 
 # Green hover for both nodes and edges
-graph.node_renderer.hover_glyph = Circle(size=node_size, fill_color='#abdda4')
+graph.node_renderer.hover_glyph = Circle(size="size", fill_color='#abdda4')
 graph.edge_renderer.hover_glyph = MultiLine(line_color='#abdda4', line_width=1)
 
 # When we hover over nodes, highlight adjacent edges too
