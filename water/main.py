@@ -15,7 +15,6 @@ from os.path import dirname, join
 
 
 callback_id = None
-start_node = 'J-300'
 
 
 def get_pollution_values(pollution_series):
@@ -26,8 +25,17 @@ def get_pollution_values(pollution_series):
     return pollution_values
 
 
+def dropdown_update(attrname, old, new):
+    """Choose the node the pollution injection starts at"""
+    start_node = dropdown.value
+    timestep = slider.value
+    pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
+    graph.node_renderer.data_source.data['colors'] = pollution_values
+
+
 def slider_update(attrname, old, new):
     """Update the pollution data used in graph when slider moved"""
+    start_node = dropdown.value
     timestep = slider.value
     timer.text = str(datetime.timedelta(seconds=int(timestep)))
     pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
@@ -83,6 +91,12 @@ filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks
 with open(filename, 'rb') as input_file:
     pollution = pickle.load(input_file)
 
+# Choose a default node for pollution injection
+for node in pollution.keys():
+    if node != 'chemical_start_time':
+        start_node = node
+        break
+
 # Create plottable coordinates for each network node
 locations = {}
 x = []
@@ -96,7 +110,7 @@ for node, node_data in G.nodes().items():
     y.append(yd)
 
 # Use the max and min pollution values for the color range
-max_pol = max(pollution[start_node].max())
+max_pol = max(pollution[start_node].max())  # TODO use lowest and highest from all pollution scenarios
 # min_pol = min(pollution[start_node].min())
 min_pol = np.nanmin(pollution[start_node][pollution[start_node] > 0].min())  # min pollution above zero
 
@@ -108,8 +122,11 @@ times = []
 for index, pollution_series in pollution[start_node].iterrows():
     times.append(index)
 
+# Set first value of timestep
+timestep = times[0]
+
 # Get pollution values for first timestep
-pollution_values = get_pollution_values(pollution[start_node].loc[times[0]])
+pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
 
 # Create the plot with wiggle room:
 x_extra_range = (max(x) - min(x)) / 20
@@ -121,7 +138,7 @@ tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
 
 # Add a timer label under plot
-timer = Title(text=str(datetime.timedelta(seconds=times[0])), text_font_size='35pt', text_color='grey')
+timer = Title(text=str(datetime.timedelta(seconds=timestep)), text_font_size='35pt', text_color='grey')
 plot.add_layout(timer, 'below')
 
 # Create bokeh graph from the NetworkX object
@@ -160,7 +177,7 @@ TOOLTIPS = [
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Create the layout with time slider, play button and pollution start menu
-slider = Slider(start=times[0], end=times[-1], value=times[0], step=step, title="Time (s)")
+slider = Slider(start=timestep, end=times[-1], value=timestep, step=step, title="Time (s)")
 slider.on_change('value', slider_update)
 
 button = Button(label='► Play', button_type="success")
@@ -171,6 +188,7 @@ for node in pollution.keys():
     if node != 'chemical_start_time':
         menu.append((node, node))
 dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
+dropdown.on_change('value', dropdown_update)
 
 layout = column(
     plot,
