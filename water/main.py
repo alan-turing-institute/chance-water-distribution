@@ -114,10 +114,11 @@ max_pols = []
 min_pols = []
 for key, df in pollution.items():
     if key != 'chemical_start_time':
-        max_pols.append(max(df.max()))
-        min_pols.append(np.nanmin(df[df > 0].min()))
-max_pol = max(max_pols)
-min_pol = min(min_pols)
+        v = df.values.ravel()
+        max_pols.append(np.max(v))
+        min_pols.append(np.min(v[v > 0]))
+max_pol = np.max(max_pols)
+min_pol = np.min(min_pols)
 
 # Get the timstep size for the slider from the pollution df
 step = pollution[start_node].index[1] - pollution[start_node].index[0]
