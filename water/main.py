@@ -110,9 +110,14 @@ for node, node_data in G.nodes().items():
     y.append(yd)
 
 # Use the max and min pollution values for the color range
-max_pol = max(pollution[start_node].max())  # TODO use lowest and highest from all pollution scenarios
-# min_pol = min(pollution[start_node].min())
-min_pol = np.nanmin(pollution[start_node][pollution[start_node] > 0].min())  # min pollution above zero
+max_pols = []
+min_pols = []
+for key, df in pollution.items():
+    if key != 'chemical_start_time':
+        max_pols.append(max(df.max()))
+        min_pols.append(np.nanmin(df[df > 0].min()))
+max_pol = max(max_pols)
+min_pol = min(min_pols)
 
 # Get the timstep size for the slider from the pollution df
 step = pollution[start_node].index[1] - pollution[start_node].index[0]
