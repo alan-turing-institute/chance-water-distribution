@@ -26,7 +26,7 @@ def get_pollution_values(pollution_series):
 
 
 def update(attrname, old, new):
-    """Choose the node the pollution injection starts at"""
+    """Update pollution data used when the slider or dropdown value changes"""
     start_node = dropdown.value
     timestep = slider.value
     timer.text = "Pollution Spread from " + start_node + ";  Time - " + str(datetime.timedelta(seconds=int(timestep)))
