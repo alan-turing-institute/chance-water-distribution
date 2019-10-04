@@ -2,6 +2,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, ColorBar, LogTicker, Title
+from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -14,7 +15,7 @@ from os.path import dirname, join
 
 
 callback_id = None
-start_node = 'J-10'
+start_node = 'J-300'
 
 
 def get_pollution_values(pollution_series):
@@ -158,17 +159,22 @@ TOOLTIPS = [
 ]
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
-# Create the layout with slider and play button
+# Create the layout with time slider, play button and pollution start menu
 slider = Slider(start=times[0], end=times[-1], value=times[0], step=step, title="Time (s)")
 slider.on_change('value', slider_update)
 
 button = Button(label='► Play', button_type="success")
-
 button.on_click(animate)
+
+menu = []
+for node in pollution.keys():
+    if node != 'chemical_start_time':
+        menu.append((node, node))
+dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
 
 layout = column(
     plot,
-    row(button, slider, height=50, sizing_mode="stretch_width"),
+    row(dropdown, button, slider, height=50, sizing_mode="stretch_width"),
     sizing_mode="stretch_both"
 )
 
