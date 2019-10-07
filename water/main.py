@@ -47,6 +47,7 @@ def get_node_outlines(start_node):
             outline_widths.append(1)
     return outline_colors, outline_widths
 
+
 def update_colors(attrname, old, new):
     """Update pollution data used for node colors"""
     start_node = pollution_location_dropdown.value
