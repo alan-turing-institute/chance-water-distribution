@@ -28,9 +28,30 @@ def get_pollution_values(pollution_series):
     return pollution_values
 
 
+def get_node_sizes(base_node_size, node_demand_weighting):
+    """Get a list of sizes to set all the nodes in the network by"""
+    return [(i * node_demand_weighting) + base_node_size for i in all_base_demands]
+
+
+def get_node_outlines(start_node):
+    """Get the color and width for each node in the graph
+        These should be the same in every case except for the pollution start node"""
+    outline_colors = []
+    outline_widths = []
+    for node in G.nodes():
+        if node == start_node:
+            outline_colors.append("yellow")
+            outline_widths.append(3)
+        else:
+            outline_colors.append("black")
+            outline_widths.append(1)
+    return outline_colors, outline_widths
+
+
 def update_colors(attrname, old, new):
     """Update pollution data used for node colors"""
     start_node = pollution_location_dropdown.value
+    graph.node_renderer.data_source.data['line_color'], graph.node_renderer.data_source.data['line_width'] = get_node_outlines(start_node)
     timestep = slider.value
     timer.text = "Pollution Spread from " + start_node + ";  Time - " + str(datetime.timedelta(seconds=int(timestep)))
     pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
@@ -39,8 +60,7 @@ def update_colors(attrname, old, new):
 
 def update_node_sizes(attrname, old, new):
     """Update the sizes of the nodes in the graph"""
-    node_sizes = [(i * demand_weight_slider.value) + node_size_slider.value for i in all_base_demands]
-    graph.node_renderer.data_source.data['size'] = node_sizes
+    graph.node_renderer.data_source.data['size'] = get_node_sizes(node_size_slider.value, demand_weight_slider.value)
 
 
 def animate_update_colors():
@@ -74,6 +94,7 @@ G = wn.get_graph().to_undirected()
 # Add the node name as an attribute, so we can use with tooltips
 # Also add info about the demand and elevation
 # Also add the names of connected nodes and edge names
+# Also get a list of the base demand for each node
 all_base_demands = []
 for node in G.nodes():
     G.node[node]['name'] = node
@@ -83,7 +104,7 @@ for node in G.nodes():
         G.node[node]['elevation'] = 'N/A'
     try:
         base_demands = []
-        for timeseries in wn.get_node(node).demand_timeseries_list:
+        for timeseries in wn.get_node(node).demand_timeseries_list:  # TODO: For some reason this is a list, but in Ky2 data there is only ever a single base demand value
             base_demands.append(timeseries.base_value)
         base_demand = mean(base_demands)
         G.node[node]['demand'] = base_demand
@@ -103,6 +124,7 @@ for node in G.nodes():
         i += 1
     G.node[node]['connected'] = connected_str
 
+# This global variable list is used for node resizing and the demand data is also displayed in the tooltip
 all_base_demands = [float(i) / max(all_base_demands) for i in all_base_demands]
 
 # Load pollution dynamics
@@ -174,11 +196,12 @@ plot.add_layout(timer, 'below')
 graph = from_networkx(G, locations)
 
 # Create nodes, set the node colors by pollution level and size by base demand
+# Node outline color and thickness is different for the pollution start node
 graph.node_renderer.data_source.data['colors'] = pollution_values
 color_mapper = log_cmap('colors', cc.coolwarm, min_pol, max_pol)
-node_sizes = [(i * node_demand_weighting) + base_node_size for i in all_base_demands]
-graph.node_renderer.data_source.data['size'] = node_sizes
-graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper)
+graph.node_renderer.data_source.data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
+graph.node_renderer.data_source.data['line_color'], graph.node_renderer.data_source.data['line_width'] = get_node_outlines(start_node)
+graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper, line_color="line_color", line_width="line_width")
 
 # Add color bar as legend
 color_bar = ColorBar(color_mapper=color_mapper['transform'], ticker=LogTicker(), label_standoff=12, location=(0, 0))
@@ -188,7 +211,7 @@ plot.add_layout(color_bar, 'right')
 graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
 
 # Green hover for both nodes and edges
-graph.node_renderer.hover_glyph = Circle(size="size", fill_color='#abdda4')
+graph.node_renderer.hover_glyph = Circle(size="size", fill_color='#abdda4', line_color="line_color", line_width="line_width")
 graph.edge_renderer.hover_glyph = MultiLine(line_color='#abdda4', line_width=1)
 
 # When we hover over nodes, highlight adjacent edges too
