@@ -158,6 +158,7 @@ x_extra_range = (max(x) - min(x)) / 20
 y_extra_range = (max(y) - min(y)) / 20
 plot = figure(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range),
               y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range),
+              active_scroll='wheel_zoom',
               x_axis_type="mercator", y_axis_type="mercator")
 
 # Add map to plot
