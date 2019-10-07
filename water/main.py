@@ -210,7 +210,7 @@ plot.add_layout(color_bar, 'right')
 graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
 
 # Green hover for both nodes and edges
-graph.node_renderer.hover_glyph = Circle(size="size", fill_color='#abdda4')
+graph.node_renderer.hover_glyph = Circle(size="size", fill_color='#abdda4', line_color="line_color", line_width="line_width")
 graph.edge_renderer.hover_glyph = MultiLine(line_color='#abdda4', line_width=1)
 
 # When we hover over nodes, highlight adjacent edges too
