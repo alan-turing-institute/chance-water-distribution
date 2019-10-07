@@ -29,8 +29,8 @@ def get_pollution_values(pollution_series):
     return pollution_values
 
 
-def update(attrname, old, new):
-    """Update pollution data used when the slider or pollution_location_dropdown value changes"""
+def update_colors(attrname, old, new):
+    """Update pollution data used for node colors"""
     start_node = pollution_location_dropdown.value
     timestep = slider.value
     timer.text = "Pollution Spread from " + start_node + ";  Time - " + str(datetime.timedelta(seconds=int(timestep)))
@@ -38,7 +38,13 @@ def update(attrname, old, new):
     graph.node_renderer.data_source.data['colors'] = pollution_values
 
 
-def animate_update():
+def update_node_sizes(attrname, old, new):
+    """Update the sizes of the nodes in the graph"""
+    node_sizes = [(i * demand_weight_slider.value) + node_size_slider.value for i in all_base_demands]
+    graph.node_renderer.data_source.data['size'] = node_sizes
+
+
+def animate_update_colors():
     """Move the slider by one step"""
     timestep = slider.value + step
     if timestep > times[-1]:
@@ -51,7 +57,7 @@ def animate():
     global callback_id
     if button.label == '► Play':
         button.label = '❚❚ Pause'
-        callback_id = curdoc().add_periodic_callback(animate_update, 30)
+        callback_id = curdoc().add_periodic_callback(animate_update_colors, 30)
     else:
         button.label = '► Play'
         curdoc().remove_periodic_callback(callback_id)
@@ -203,10 +209,10 @@ plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Slider to change the timestep of the pollution data visualised
 slider = Slider(start=first_timestep, end=times[-1], value=first_timestep, step=step, title="Time (s)")
-slider.on_change('value', update)
+slider.on_change('value', update_colors)
 
 # Play button to move the slider for the pollution timeseries
-button = Button(label='► Play', button_type="success")
+button = Button(label='► Start Pollution', button_type="success")
 button.on_click(animate)
 
 # Dropdown menu to choose pollution start location
@@ -214,17 +220,21 @@ menu = []
 for node in pollution.keys():
     if node != 'chemical_start_time':
         menu.append((node, node))
-pollution_location_dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
-pollution_location_dropdown.on_change('value', update)
+pollution_location_dropdown = Dropdown(label="Pollution Injection Location", button_type="danger", menu=menu)
+pollution_location_dropdown.on_change('value', update_colors)
 pollution_location_dropdown.value = menu[0][0]  # Set default pollution start node
 
 # Dropdown menu to choose node size and demand weighting
-# nodes_dropdown = Dropdown(label="Adjust Node Sizes", button_type="warning", menu=menu)
-# nodes_dropdown.on_change('value', update)
+node_size_slider = Slider(start=1, end=20, value=base_node_size, step=1, title="Node Size")
+node_size_slider.on_change('value', update_node_sizes)
+node_size_slider.value = base_node_size
+demand_weight_slider = Slider(start=1, end=40, value=node_demand_weighting, step=1, title="Base Demand Weighting")
+demand_weight_slider.on_change('value', update_node_sizes)
+demand_weight_slider.value = node_demand_weighting
 
 # Create the layout for the graph and widgets
 layout = column(
-    row(pollution_location_dropdown, height=50, sizing_mode="stretch_width"),
+    row(row(node_size_slider, demand_weight_slider), pollution_location_dropdown, height=50, sizing_mode="stretch_width"),
     plot,
     row(button, slider, height=50, sizing_mode="stretch_width"),
     sizing_mode="stretch_both"
