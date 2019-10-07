@@ -18,6 +18,9 @@ import wntr
 callback_id = None
 base_node_size = 8
 node_demand_weighting = 15
+animation_speed = 250
+BUTTON_LABEL_PAUSED = '► Start Pollution'
+BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
 
 def get_pollution_values(pollution_series):
@@ -74,12 +77,29 @@ def animate_update_colors():
 def animate():
     """Move the slider every 30 milliseconds on play button click"""
     global callback_id
-    if button.label == '► Start Pollution':
-        button.label = '❚❚ Pause'
-        callback_id = curdoc().add_periodic_callback(animate_update_colors, 30)
-    else:
-        button.label = '► Start Pollution'
+    global animation_speed
+    if button.label == BUTTON_LABEL_PAUSED:
+        button.label = BUTTON_LABEL_PLAYING
+        callback_id = curdoc().add_periodic_callback(animate_update_colors,
+                                                     animation_speed)
+    elif button.label == BUTTON_LABEL_PLAYING:
+        button.label = BUTTON_LABEL_PAUSED
         curdoc().remove_periodic_callback(callback_id)
+
+
+def update_speed(attr, old, new):
+    """Adjust the animation speed"""
+    global callback_id
+    global animation_speed
+
+    # Update animation speed
+    animation_speed = speeds[speed_dropdown.value]
+
+    # If animation is playing recreate the periodic callback
+    if button.label == BUTTON_LABEL_PLAYING:
+        curdoc().remove_periodic_callback(callback_id)
+        callback_id = curdoc().add_periodic_callback(animate_update,
+                                                     animation_speed)
 
 
 # load .inp file
@@ -245,6 +265,7 @@ menu = []
 for node in pollution.keys():
     if node != 'chemical_start_time':
         menu.append((node, node))
+
 pollution_location_dropdown = Dropdown(label="Pollution Injection Location", button_type="danger", menu=menu)
 pollution_location_dropdown.on_change('value', update_colors)
 pollution_location_dropdown.value = menu[0][0]  # Set default pollution start node
@@ -257,11 +278,21 @@ demand_weight_slider = Slider(start=1, end=40, value=node_demand_weighting, step
 demand_weight_slider.on_change('value', update_node_sizes)
 demand_weight_slider.value = node_demand_weighting
 
+dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
+dropdown.on_change('value', update)
+
+speed_menu = ['slow', 'medium', 'fast']
+speeds = dict(zip(speed_menu, [250, 100, 30]))
+speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
+                          menu=speed_menu)
+speed_dropdown.on_change('value', update_speed)
+
 # Create the layout for the graph and widgets
 layout = column(
     row(row(node_size_slider, demand_weight_slider), pollution_location_dropdown, height=50, sizing_mode="stretch_width"),
     plot,
-    row(button, slider, height=50, sizing_mode="stretch_width"),
+    row(button, speed_dropdown, slider, height=50,
+        sizing_mode="stretch_width"),
     sizing_mode="stretch_both"
 )
 
