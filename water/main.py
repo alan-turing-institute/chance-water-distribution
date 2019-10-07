@@ -1,7 +1,7 @@
 from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, ColorBar, LogTicker, Title, ColumnDataSource
+from bokeh.models import Range1d, MultiLine, Circle, HoverTool, Slider, Button, ColorBar, LogTicker, Title
 from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -13,7 +13,6 @@ from os.path import dirname, join
 import pickle
 from statistics import mean
 import wntr
-
 
 
 callback_id = None
@@ -80,7 +79,7 @@ for node in G.nodes():
     G.node[node]['name'] = node
     try:
         G.node[node]['elevation'] = wn.query_node_attribute('elevation')[node]
-    except:
+    except KeyError:
         G.node[node]['elevation'] = 'N/A'
     try:
         base_demands = []
@@ -89,7 +88,7 @@ for node in G.nodes():
         base_demand = mean(base_demands)
         G.node[node]['demand'] = base_demand
         all_base_demands.append(base_demand)
-    except:
+    except AttributeError:
         all_base_demands.append(0.0)  # Nodes with no demand will not resize from the base_node_size
         G.node[node]['demand'] = "N/A"
     pipes = dict(G.adj[node])
@@ -104,7 +103,7 @@ for node in G.nodes():
         i += 1
     G.node[node]['connected'] = connected_str
 
-all_base_demands = [float(i)/max(all_base_demands) for i in all_base_demands]
+all_base_demands = [float(i) / max(all_base_demands) for i in all_base_demands]
 
 # Load pollution dynamics
 filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks/Ky2.pkl')
