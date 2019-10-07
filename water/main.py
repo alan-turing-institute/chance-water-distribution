@@ -30,8 +30,8 @@ def get_pollution_values(pollution_series):
 
 
 def update(attrname, old, new):
-    """Update pollution data used when the slider or dropdown value changes"""
-    start_node = dropdown.value
+    """Update pollution data used when the slider or pollution_location_dropdown value changes"""
+    start_node = pollution_location_dropdown.value
     timestep = slider.value
     timer.text = "Pollution Spread from " + start_node + ";  Time - " + str(datetime.timedelta(seconds=int(timestep)))
     pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
@@ -158,7 +158,7 @@ tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
 
 # Add a timer label under plot
-timer_text = "Pollution Spread from [SELECT INJECTION LOCATION]"
+timer_text = "[SELECT INJECTION LOCATION]"  # This is no longer actually visible, there is now a default pollution start node
 timer = Title(text=timer_text, text_font_size='35pt', text_color='grey')
 plot.add_layout(timer, 'below')
 
@@ -201,22 +201,30 @@ TOOLTIPS = [
 ]
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
-# Create the layout with time slider, play button and pollution start menu
+# Slider to change the timestep of the pollution data visualised
 slider = Slider(start=first_timestep, end=times[-1], value=first_timestep, step=step, title="Time (s)")
 slider.on_change('value', update)
 
+# Play button to move the slider for the pollution timeseries
 button = Button(label='► Play', button_type="success")
 button.on_click(animate)
 
+# Dropdown menu to choose pollution start location
 menu = []
 for node in pollution.keys():
     if node != 'chemical_start_time':
         menu.append((node, node))
-dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
-dropdown.on_change('value', update)
+pollution_location_dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
+pollution_location_dropdown.on_change('value', update)
+pollution_location_dropdown.value = menu[0][0]  # Set default pollution start node
 
+# Dropdown menu to choose node size and demand weighting
+# nodes_dropdown = Dropdown(label="Adjust Node Sizes", button_type="warning", menu=menu)
+# nodes_dropdown.on_change('value', update)
+
+# Create the layout for the graph and widgets
 layout = column(
-    row(dropdown, height=50, sizing_mode="stretch_width"),
+    row(pollution_location_dropdown, height=50, sizing_mode="stretch_width"),
     plot,
     row(button, slider, height=50, sizing_mode="stretch_width"),
     sizing_mode="stretch_both"
