@@ -9,12 +9,15 @@ from bokeh.transform import log_cmap
 import colorcet as cc
 import datetime
 import numpy as np
-import pickle
-import wntr
 from os.path import dirname, join
+import pickle
+from statistics import mean
+import wntr
 
 
 callback_id = None
+base_node_size = 8
+node_demand_weighting = 15
 
 
 def get_pollution_values(pollution_series):
@@ -25,16 +28,22 @@ def get_pollution_values(pollution_series):
     return pollution_values
 
 
-def update(attrname, old, new):
-    """Update pollution data used when the slider or dropdown value changes"""
-    start_node = dropdown.value
+def update_colors(attrname, old, new):
+    """Update pollution data used for node colors"""
+    start_node = pollution_location_dropdown.value
     timestep = slider.value
     timer.text = "Pollution Spread from " + start_node + ";  Time - " + str(datetime.timedelta(seconds=int(timestep)))
     pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
     graph.node_renderer.data_source.data['colors'] = pollution_values
 
 
-def animate_update():
+def update_node_sizes(attrname, old, new):
+    """Update the sizes of the nodes in the graph"""
+    node_sizes = [(i * demand_weight_slider.value) + node_size_slider.value for i in all_base_demands]
+    graph.node_renderer.data_source.data['size'] = node_sizes
+
+
+def animate_update_colors():
     """Move the slider by one step"""
     timestep = slider.value + step
     if timestep > times[-1]:
@@ -45,11 +54,11 @@ def animate_update():
 def animate():
     """Move the slider every 30 milliseconds on play button click"""
     global callback_id
-    if button.label == '► Play':
+    if button.label == '► Start Pollution':
         button.label = '❚❚ Pause'
-        callback_id = curdoc().add_periodic_callback(animate_update, 30)
+        callback_id = curdoc().add_periodic_callback(animate_update_colors, 30)
     else:
-        button.label = '► Play'
+        button.label = '► Start Pollution'
         curdoc().remove_periodic_callback(callback_id)
 
 
@@ -63,9 +72,25 @@ wn = wntr.network.WaterNetworkModel(filename)
 G = wn.get_graph().to_undirected()
 
 # Add the node name as an attribute, so we can use with tooltips
+# Also add info about the demand and elevation
 # Also add the names of connected nodes and edge names
+all_base_demands = []
 for node in G.nodes():
     G.node[node]['name'] = node
+    try:
+        G.node[node]['elevation'] = wn.query_node_attribute('elevation')[node]
+    except KeyError:
+        G.node[node]['elevation'] = 'N/A'
+    try:
+        base_demands = []
+        for timeseries in wn.get_node(node).demand_timeseries_list:
+            base_demands.append(timeseries.base_value)
+        base_demand = mean(base_demands)
+        G.node[node]['demand'] = base_demand
+        all_base_demands.append(base_demand)
+    except AttributeError:
+        all_base_demands.append(0.0)  # Nodes with no demand will not resize from the base_node_size
+        G.node[node]['demand'] = "N/A"
     pipes = dict(G.adj[node])
     connected_str = ""
     i = 0
@@ -77,6 +102,8 @@ for node in G.nodes():
             connected_str = connected_str + pipe + " "
         i += 1
     G.node[node]['connected'] = connected_str
+
+all_base_demands = [float(i) / max(all_base_demands) for i in all_base_demands]
 
 # Load pollution dynamics
 filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks/Ky2.pkl')
@@ -136,18 +163,19 @@ tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
 
 # Add a timer label under plot
-timer_text = "Pollution Spread from [SELECT INJECTION LOCATION]"
+timer_text = "[SELECT INJECTION LOCATION]"  # This is no longer actually visible, there is now a default pollution start node
 timer = Title(text=timer_text, text_font_size='35pt', text_color='grey')
 plot.add_layout(timer, 'below')
 
 # Create bokeh graph from the NetworkX object
 graph = from_networkx(G, locations)
 
-# Create nodes and set the node colors by pollution level
+# Create nodes, set the node colors by pollution level and size by base demand
 graph.node_renderer.data_source.data['colors'] = pollution_values
 color_mapper = log_cmap('colors', cc.coolwarm, min_pol, max_pol)
-node_size = 10
-graph.node_renderer.glyph = Circle(size=node_size, fill_color=color_mapper)
+node_sizes = [(i * node_demand_weighting) + base_node_size for i in all_base_demands]
+graph.node_renderer.data_source.data['size'] = node_sizes
+graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper)
 
 # Add color bar as legend
 color_bar = ColorBar(color_mapper=color_mapper['transform'], ticker=LogTicker(), label_standoff=12, location=(0, 0))
@@ -157,7 +185,7 @@ plot.add_layout(color_bar, 'right')
 graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
 
 # Green hover for both nodes and edges
-graph.node_renderer.hover_glyph = Circle(size=node_size, fill_color='#abdda4')
+graph.node_renderer.hover_glyph = Circle(size="size", fill_color='#abdda4')
 graph.edge_renderer.hover_glyph = MultiLine(line_color='#abdda4', line_width=1)
 
 # When we hover over nodes, highlight adjacent edges too
@@ -171,26 +199,41 @@ TOOLTIPS = [
     ("Type", "@type"),
     ("Name", "@name"),
     ("Position", "@pos"),
+    ("Elevation", "@elevation"),
     ("Connected", "@connected"),
+    ("Base Demand", "@demand"),
+    ("Pollution Level", "@colors")
 ]
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
-# Create the layout with time slider, play button and pollution start menu
+# Slider to change the timestep of the pollution data visualised
 slider = Slider(start=first_timestep, end=times[-1], value=first_timestep, step=step, title="Time (s)")
-slider.on_change('value', update)
+slider.on_change('value', update_colors)
 
-button = Button(label='► Play', button_type="success")
+# Play button to move the slider for the pollution timeseries
+button = Button(label='► Start Pollution', button_type="success")
 button.on_click(animate)
 
+# Dropdown menu to choose pollution start location
 menu = []
 for node in pollution.keys():
     if node != 'chemical_start_time':
         menu.append((node, node))
-dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
-dropdown.on_change('value', update)
+pollution_location_dropdown = Dropdown(label="Pollution Injection Location", button_type="danger", menu=menu)
+pollution_location_dropdown.on_change('value', update_colors)
+pollution_location_dropdown.value = menu[0][0]  # Set default pollution start node
 
+# Dropdown menu to choose node size and demand weighting
+node_size_slider = Slider(start=1, end=20, value=base_node_size, step=1, title="Node Size")
+node_size_slider.on_change('value', update_node_sizes)
+node_size_slider.value = base_node_size
+demand_weight_slider = Slider(start=1, end=40, value=node_demand_weighting, step=1, title="Base Demand Weighting")
+demand_weight_slider.on_change('value', update_node_sizes)
+demand_weight_slider.value = node_demand_weighting
+
+# Create the layout for the graph and widgets
 layout = column(
-    row(dropdown, height=50, sizing_mode="stretch_width"),
+    row(row(node_size_slider, demand_weight_slider), pollution_location_dropdown, height=50, sizing_mode="stretch_width"),
     plot,
     row(button, slider, height=50, sizing_mode="stretch_width"),
     sizing_mode="stretch_both"
