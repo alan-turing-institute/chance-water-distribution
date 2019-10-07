@@ -55,11 +55,11 @@ def animate_update_colors():
 def animate():
     """Move the slider every 30 milliseconds on play button click"""
     global callback_id
-    if button.label == '► Play':
+    if button.label == '► Start Pollution':
         button.label = '❚❚ Pause'
         callback_id = curdoc().add_periodic_callback(animate_update_colors, 30)
     else:
-        button.label = '► Play'
+        button.label = '► Start Pollution'
         curdoc().remove_periodic_callback(callback_id)
 
 
