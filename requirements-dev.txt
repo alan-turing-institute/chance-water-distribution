@@ -2,6 +2,7 @@ bokeh
 colorcet
 networkx
 numpy
+pandas
 pycodestyle
 pyflakes
 pytest

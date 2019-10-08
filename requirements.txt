@@ -2,4 +2,5 @@ bokeh
 colorcet
 networkx
 numpy
+pandas
 wntr
