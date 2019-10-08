@@ -30,11 +30,15 @@ speeds = dict(zip(speed_menu, [250, 100, 30]))
 animation_speed = speeds['medium']
 
 
-def get_pollution_values(pollution_series):
-    """Get a pollution value for each node, ordered the same as the x,y node coordinates"""
-    pollution_values = []
-    for node in G.nodes():
-        pollution_values.append(pollution_series[node])
+def get_pollution_values(start_node, timestep):
+    """Get a pollution value for each node when the pollution started at a particular node"""
+    try:
+        pollution_series = pollution[start_node].loc[timestep]
+        pollution_values = []
+        for node in G.nodes():
+            pollution_values.append(pollution_series[node])
+    except KeyError:  # If there is no pollution data for a particular timestep
+        pollution_values = len(G.nodes()) * [0.0]
     return pollution_values
 
 
@@ -64,7 +68,7 @@ def update_colors(attrname, old, new):
     graph.node_renderer.data_source.data['line_color'], graph.node_renderer.data_source.data['line_width'] = get_node_outlines(start_node)
     timestep = slider.value
     timer.text = "Pollution Spread from " + start_node + ";  Time - " + str(datetime.timedelta(seconds=int(timestep)))
-    pollution_values = get_pollution_values(pollution[start_node].loc[timestep])
+    pollution_values = get_pollution_values(start_node, timestep)
     graph.node_renderer.data_source.data['colors'] = pollution_values
 
 
@@ -155,6 +159,7 @@ for node in G.nodes():
 all_base_demands = [float(i) / max(all_base_demands) for i in all_base_demands]
 
 # Load pollution dynamics
+# Create pollution as a global var used in some functions
 filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks/Ky2.pkl')
 with open(filename, 'rb') as input_file:
     pollution = pickle.load(input_file)
@@ -196,11 +201,8 @@ times = []
 for index, pollution_series in pollution[start_node].iterrows():
     times.append(index)
 
-# Set first value of timestep
-first_timestep = times[0]
-
-# Get pollution values for first timestep
-pollution_values = get_pollution_values(pollution[start_node].loc[first_timestep])
+# Get pollution values for time zero
+pollution_values = get_pollution_values(start_node, 0)
 
 # Create the plot with wiggle room:
 x_extra_range = (max(x) - min(x)) / 20
@@ -260,7 +262,7 @@ TOOLTIPS = [
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Slider to change the timestep of the pollution data visualised
-slider = Slider(start=first_timestep, end=times[-1], value=first_timestep, step=step, title="Time (s)")
+slider = Slider(start=0, end=times[-1], value=0, step=step, title="Time (s)")
 slider.on_change('value', update_colors)
 
 # Play button to move the slider for the pollution timeseries
