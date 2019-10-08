@@ -1,5 +1,5 @@
-from water.main import get_pollution_values
-from water.main import get_node_sizes
+from ..water.main import get_pollution_values
+from ..water.main import get_node_sizes
 
 
 def test_get_pollution_values():
