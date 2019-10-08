@@ -19,12 +19,15 @@ callback_id = None
 base_node_size = 8
 node_demand_weighting = 15
 
-animation_speed = 250
-
 # Labels for the play/pause button in paused and playing states respectively
 BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
+# Animation speeds and speed drop down entries. 'Speeds' are in ms per frame
+speed_menu = ['slow', 'medium', 'fast']
+speeds = dict(zip(speed_menu, [250, 100, 30]))
+# Starting animation speed
+animation_speed = speeds['medium']
 
 def get_pollution_values(pollution_series):
     """Get a pollution value for each node, ordered the same as the x,y node coordinates"""
@@ -284,8 +287,6 @@ demand_weight_slider.value = node_demand_weighting
 dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
 dropdown.on_change('value', update)
 
-speed_menu = ['slow', 'medium', 'fast']
-speeds = dict(zip(speed_menu, [250, 100, 30]))
 speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
                           menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
