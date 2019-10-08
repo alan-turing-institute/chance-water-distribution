@@ -263,7 +263,7 @@ slider = Slider(start=first_timestep, end=times[-1], value=first_timestep, step=
 slider.on_change('value', update_colors)
 
 # Play button to move the slider for the pollution timeseries
-button = Button(label='► Start Pollution', button_type="success")
+button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 button.on_click(animate)
 
 # Dropdown menu to choose pollution start location
