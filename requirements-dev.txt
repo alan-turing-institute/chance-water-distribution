@@ -1,2 +1,8 @@
+bokeh
+colorcet
+networkx
+numpy
 pycodestyle
 pyflakes
+pytest
+wntr
