@@ -29,6 +29,7 @@ speeds = dict(zip(speed_menu, [250, 100, 30]))
 # Starting animation speed
 animation_speed = speeds['medium']
 
+
 def get_pollution_values(pollution_series):
     """Get a pollution value for each node, ordered the same as the x,y node coordinates"""
     pollution_values = []
@@ -104,7 +105,7 @@ def update_speed(attr, old, new):
     # If animation is playing recreate the periodic callback
     if button.label == BUTTON_LABEL_PLAYING:
         curdoc().remove_periodic_callback(callback_id)
-        callback_id = curdoc().add_periodic_callback(animate_update,
+        callback_id = curdoc().add_periodic_callback(animate_update_colors,
                                                      animation_speed)
 
 
@@ -285,7 +286,7 @@ demand_weight_slider.on_change('value', update_node_sizes)
 demand_weight_slider.value = node_demand_weighting
 
 dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
-dropdown.on_change('value', update)
+dropdown.on_change('value', update_colors)
 
 speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
                           menu=speed_menu)
