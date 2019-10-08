@@ -132,9 +132,10 @@ for node in G.nodes():
 all_base_demands = [float(i) / max(all_base_demands) for i in all_base_demands]
 
 # Load pollution dynamics
+# Create pollution as a global var used in some functions
 filename = join(dirname(__file__), 'data', 'kentucky_water_distribution_networks/Ky2.pkl')
 with open(filename, 'rb') as input_file:
-    pollution = pickle.load(input_file)  # Create pollution as a global var used in some functions
+    pollution = pickle.load(input_file)
 
 # Choose a default node for pollution injection
 for node in pollution.keys():
