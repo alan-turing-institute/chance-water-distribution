@@ -54,10 +54,10 @@ def get_node_outlines(start_node):
     outline_widths = []
     for node in G.nodes():
         if node == start_node:
-            outline_colors.append("yellow")
+            outline_colors.append("red")
             outline_widths.append(3)
         else:
-            outline_colors.append("black")
+            outline_colors.append("white")
             outline_widths.append(1)
     return outline_colors, outline_widths
 
