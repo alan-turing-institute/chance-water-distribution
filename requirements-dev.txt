@@ -6,4 +6,5 @@ pandas
 pycodestyle
 pyflakes
 pytest
+scipy
 wntr
