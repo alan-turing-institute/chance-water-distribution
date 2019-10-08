@@ -285,9 +285,6 @@ demand_weight_slider = Slider(start=1, end=40, value=node_demand_weighting, step
 demand_weight_slider.on_change('value', update_node_sizes)
 demand_weight_slider.value = node_demand_weighting
 
-dropdown = Dropdown(label="Pollution Injection Location", button_type="primary", menu=menu)
-dropdown.on_change('value', update_colors)
-
 speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
                           menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
