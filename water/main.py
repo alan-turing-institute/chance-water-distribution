@@ -227,7 +227,7 @@ graph = from_networkx(G, locations)
 # Create nodes, set the node colors by pollution level and size by base demand
 # Node outline color and thickness is different for the pollution start node
 graph.node_renderer.data_source.data['colors'] = pollution_values
-color_mapper = log_cmap('colors', cc.coolwarm, min_pol, max_pol)
+color_mapper = log_cmap('colors', cc.kgy, min_pol, max_pol)
 graph.node_renderer.data_source.data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
 graph.node_renderer.data_source.data['line_color'], graph.node_renderer.data_source.data['line_width'] = get_node_outlines(start_node)
 graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper, line_color="line_color", line_width="line_width")
