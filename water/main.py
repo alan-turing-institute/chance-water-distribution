@@ -18,7 +18,10 @@ import wntr
 callback_id = None
 base_node_size = 8
 node_demand_weighting = 15
+
 animation_speed = 250
+
+# Labels for the play/pause button in paused and playing states respectively
 BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
