@@ -18,4 +18,4 @@ script:
   # Check PEP8 compliance (ignoring long lines)
   - pycodestyle --statistics --ignore=E501 --count water
   # Run tests
-  - pytest
+  - python -m pytest -v tests water
