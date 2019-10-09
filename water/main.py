@@ -54,10 +54,10 @@ def get_node_outlines(start_node):
     outline_widths = []
     for node in G.nodes():
         if node == start_node:
-            outline_colors.append("red")
+            outline_colors.append("#34c3eb")
             outline_widths.append(3)
         else:
-            outline_colors.append("white")
+            outline_colors.append("black")
             outline_widths.append(1)
     return outline_colors, outline_widths
 
@@ -227,7 +227,7 @@ graph = from_networkx(G, locations)
 # Create nodes, set the node colors by pollution level and size by base demand
 # Node outline color and thickness is different for the pollution start node
 graph.node_renderer.data_source.data['colors'] = pollution_values
-color_mapper = log_cmap('colors', cc.kgy, min_pol, max_pol)
+color_mapper = log_cmap('colors', cc.CET_L18, min_pol, max_pol)
 graph.node_renderer.data_source.data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
 graph.node_renderer.data_source.data['line_color'], graph.node_renderer.data_source.data['line_width'] = get_node_outlines(start_node)
 graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper, line_color="line_color", line_width="line_width")
