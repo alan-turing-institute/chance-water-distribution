@@ -323,7 +323,6 @@ button.on_click(animate)
 pollution_location_dropdown = Dropdown(label="Pollution Injection Location",
                                        button_type="danger", menu=scenarios)
 pollution_location_dropdown.on_change('value', update_colors)
-# Set default pollution start node
 pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to choose node size and demand weighting
@@ -336,6 +335,7 @@ demand_weight_slider = Slider(start=1, end=40, value=node_demand_weighting,
 demand_weight_slider.on_change('value', update_node_sizes)
 demand_weight_slider.value = node_demand_weighting
 
+# Speed selection dropdown widget
 speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
                           menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
