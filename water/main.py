@@ -191,7 +191,18 @@ def load_pollution_dynamics():
             start_node = node
             break
 
-    return pollution, start_node
+    # Determine max and min pollution values
+    max_pols = []
+    min_pols = []
+    for key, df in pollution.items():
+        if key != 'chemical_start_time':
+            v = df.values.ravel()
+            max_pols.append(np.max(v))
+            min_pols.append(np.min(v[v > 0]))
+    max_pol = np.max(max_pols)
+    min_pol = np.min(min_pols)
+
+    return pollution, start_node, max_pol, min_pol
 
 
 def plot_bounds(locations):
@@ -216,7 +227,7 @@ def plot_bounds(locations):
 
 
 G, all_base_demands = load_water_network()
-pollution, start_node = load_pollution_dynamics()
+pollution, start_node, max_pol, min_pol = load_pollution_dynamics()
 
 # Create plottable coordinates for each network node
 locations = {}
@@ -232,17 +243,6 @@ x_bounds, y_bounds = plot_bounds(locations)
 # Create figure object
 plot = figure(x_range=x_bounds, y_range=y_bounds, active_scroll='wheel_zoom',
               x_axis_type="mercator", y_axis_type="mercator")
-
-# Use the max and min pollution values for the color range
-max_pols = []
-min_pols = []
-for key, df in pollution.items():
-    if key != 'chemical_start_time':
-        v = df.values.ravel()
-        max_pols.append(np.max(v))
-        min_pols.append(np.min(v[v > 0]))
-max_pol = np.max(max_pols)
-min_pol = np.min(min_pols)
 
 # Get the timstep size for the slider from the pollution df
 step = pollution[start_node].index[1] - pollution[start_node].index[0]
