@@ -85,9 +85,9 @@ def update_node_sizes(attrname, old, new):
 
 def animate_update_colors():
     """Move the slider by one step"""
-    timestep = slider.value + step
-    if timestep > times[-1]:
-        timestep = times[0]
+    timestep = slider.value + step_pol
+    if timestep > end_pol:
+        timestep = start_pol
     slider.value = timestep
 
 
@@ -199,6 +199,15 @@ def load_pollution_dynamics():
             start_node = node
             break
 
+    # Determine the step numbers for the beginning and end of the pollution
+    # data. This assumes all pollution scenarios are identical in time to the
+    # default starting node!
+    start = pollution[start_node].index.min()
+    end = pollution[start_node].index.max()
+
+    # Get the timstep size for the slider from the pollution df
+    step = pollution[start_node].index[1] - pollution[start_node].index[0]
+
     # Determine max and min pollution values
     max_pols = []
     min_pols = []
@@ -210,7 +219,7 @@ def load_pollution_dynamics():
     max_pol = np.max(max_pols)
     min_pol = np.min(min_pols)
 
-    return pollution, start_node, max_pol, min_pol
+    return pollution, start_node, start, end, step, max_pol, min_pol
 
 
 def plot_bounds(locations):
@@ -235,7 +244,8 @@ def plot_bounds(locations):
 
 
 G, locations, all_base_demands = load_water_network()
-pollution, start_node, max_pol, min_pol = load_pollution_dynamics()
+(pollution, start_node, start_pol, end_pol, step_pol,
+ max_pol, min_pol) = load_pollution_dynamics()
 
 # Determine the plot bounds
 x_bounds, y_bounds = plot_bounds(locations)
@@ -243,14 +253,6 @@ x_bounds, y_bounds = plot_bounds(locations)
 # Create figure object
 plot = figure(x_range=x_bounds, y_range=y_bounds, active_scroll='wheel_zoom',
               x_axis_type="mercator", y_axis_type="mercator")
-
-# Get the timstep size for the slider from the pollution df
-step = pollution[start_node].index[1] - pollution[start_node].index[0]
-
-# Get a list of the timestep indices we have pollution data for
-times = []
-for index, pollution_series in pollution[start_node].iterrows():
-    times.append(index)
 
 # Get pollution values for time zero
 pollution_values = get_pollution_values(start_node, 0)
@@ -313,7 +315,7 @@ TOOLTIPS = [
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Slider to change the timestep of the pollution data visualised
-slider = Slider(start=0, end=times[-1], value=0, step=step, title="Time (s)")
+slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
 slider.on_change('value', update_colors)
 
 # Play button to move the slider for the pollution timeseries
