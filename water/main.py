@@ -244,18 +244,17 @@ def plot_bounds(locations):
 
 
 G, locations, all_base_demands = load_water_network()
+
 (pollution, start_node, start_pol, end_pol, step_pol,
  max_pol, min_pol) = load_pollution_dynamics()
 
-# Determine the plot bounds
-x_bounds, y_bounds = plot_bounds(locations)
-
-# Create figure object
-plot = figure(x_range=x_bounds, y_range=y_bounds, active_scroll='wheel_zoom',
-              x_axis_type="mercator", y_axis_type="mercator")
-
 # Get pollution values for time zero
 pollution_values = get_pollution_values(start_node, 0)
+
+# Create figure object
+x_bounds, y_bounds = plot_bounds(locations)
+plot = figure(x_range=x_bounds, y_range=y_bounds, active_scroll='wheel_zoom',
+              x_axis_type="mercator", y_axis_type="mercator")
 
 # Add map to plot
 tile_provider = get_provider(Vendors.CARTODBPOSITRON)
