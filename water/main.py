@@ -168,14 +168,17 @@ def load_water_network():
             i += 1
         G.node[node]['connected'] = connected_str
 
+    # Normalise base demands
+    # This global variable list is used for node resizing and the demand data
+    # is also displayed in the tooltip
+    all_base_demands = [float(i) / max(all_base_demands)
+                        for i in all_base_demands]
+
     return G, all_base_demands
 
 
 G, all_base_demands = load_water_network()
 
-# This global variable list is used for node resizing and the demand data is
-# also displayed in the tooltip
-all_base_demands = [float(i) / max(all_base_demands) for i in all_base_demands]
 
 # Load pollution dynamics
 # Create pollution as a global var used in some functions
