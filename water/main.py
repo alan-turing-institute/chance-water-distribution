@@ -200,15 +200,21 @@ for node in pollution.keys():
 
 # Create plottable coordinates for each network node
 locations = {}
-x = []
-y = []
 for node, node_data in G.nodes().items():
     # Adjust the coordinates to roughly lay over Louisville, Kentucky
     xd = node_data['pos'][0] - 13620000
     yd = node_data['pos'][1] + 1170000
     locations[node] = (xd, yd)
-    x.append(xd)
-    y.append(yd)
+
+# Create the plot with wiggle room:
+x_max, x_min = max(locations.values()[0]), min(locations.values()[0])
+y_max, y_min = max(locations.values()[1]), min(locations.values()[1])
+x_extra_range = (x_max - x_min) / 20
+y_extra_range = (y_max - y_min) / 20
+plot = figure(x_range=Range1d(x_min - x_extra_range, x_max + x_extra_range),
+              y_range=Range1d(y_min - y_extra_range, y_max + y_extra_range),
+              active_scroll='wheel_zoom',
+              x_axis_type="mercator", y_axis_type="mercator")
 
 # Use the max and min pollution values for the color range
 max_pols = []
@@ -231,14 +237,6 @@ for index, pollution_series in pollution[start_node].iterrows():
 
 # Get pollution values for time zero
 pollution_values = get_pollution_values(start_node, 0)
-
-# Create the plot with wiggle room:
-x_extra_range = (max(x) - min(x)) / 20
-y_extra_range = (max(y) - min(y)) / 20
-plot = figure(x_range=Range1d(min(x) - x_extra_range, max(x) + x_extra_range),
-              y_range=Range1d(min(y) - y_extra_range, max(y) + y_extra_range),
-              active_scroll='wheel_zoom',
-              x_axis_type="mercator", y_axis_type="mercator")
 
 # Add map to plot
 tile_provider = get_provider(Vendors.CARTODBPOSITRON)
