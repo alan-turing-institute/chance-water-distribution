@@ -24,12 +24,6 @@ node_demand_weighting = 15
 BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
-# Animation speeds and speed drop down entries. 'Speeds' are in ms per frame
-speed_menu = ['slow', 'medium', 'fast']
-speeds = dict(zip(speed_menu, [250, 100, 30]))
-# Starting animation speed
-animation_speed = speeds['medium']
-
 
 def get_pollution_values(start_node, timestep):
     """Get a pollution value for each node when the pollution started at a
@@ -336,9 +330,14 @@ demand_weight_slider.on_change('value', update_node_sizes)
 demand_weight_slider.value = node_demand_weighting
 
 # Speed selection dropdown widget
+# Animation speeds and speed drop down entries. 'Speeds' are in ms per frame
+speed_menu = ['slow', 'medium', 'fast']
+speeds = dict(zip(speed_menu, [250, 100, 30]))
 speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
                           menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
+# Starting animation speed
+animation_speed = speeds['medium']
 
 # Create the layout for the graph and widgets
 layout = column(
