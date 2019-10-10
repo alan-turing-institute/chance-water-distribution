@@ -174,7 +174,15 @@ def load_water_network():
     all_base_demands = [float(i) / max(all_base_demands)
                         for i in all_base_demands]
 
-    return G, all_base_demands
+    # Create plottable coordinates for each network node
+    locations = {}
+    for node, node_data in G.nodes().items():
+        # Adjust the coordinates to roughly lay over Louisville, Kentucky
+        xd = node_data['pos'][0] - 13620000
+        yd = node_data['pos'][1] + 1170000
+        locations[node] = (xd, yd)
+
+    return G, locations, all_base_demands
 
 
 def load_pollution_dynamics():
@@ -226,16 +234,8 @@ def plot_bounds(locations):
     return Range1d(x_lower, x_upper), Range1d(y_lower, y_upper)
 
 
-G, all_base_demands = load_water_network()
+G, locations, all_base_demands = load_water_network()
 pollution, start_node, max_pol, min_pol = load_pollution_dynamics()
-
-# Create plottable coordinates for each network node
-locations = {}
-for node, node_data in G.nodes().items():
-    # Adjust the coordinates to roughly lay over Louisville, Kentucky
-    xd = node_data['pos'][0] - 13620000
-    yd = node_data['pos'][1] + 1170000
-    locations[node] = (xd, yd)
 
 # Determine the plot bounds
 x_bounds, y_bounds = plot_bounds(locations)
