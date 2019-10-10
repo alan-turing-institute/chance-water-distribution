@@ -267,11 +267,13 @@ plot.add_layout(timer, 'below')
 # Create bokeh graph from the NetworkX object
 graph = from_networkx(G, locations)
 
+# Define color map for pollution
+color_mapper = log_cmap('colors', cc.CET_L18, min_pol, max_pol)
+
 # Create nodes, set the node colors by pollution level and size by base demand
 # Node outline color and thickness is different for the pollution start node
-graph.node_renderer.data_source.data['colors'] = pollution_values
-color_mapper = log_cmap('colors', cc.CET_L18, min_pol, max_pol)
 data = graph.node_renderer.data_source.data
+data['colors'] = pollution_values
 data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
 data['line_color'], data['line_width'] = get_node_outlines(start_node)
 graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
