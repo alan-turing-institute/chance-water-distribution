@@ -207,8 +207,10 @@ for node, node_data in G.nodes().items():
     locations[node] = (xd, yd)
 
 # Create the plot with wiggle room:
-x_max, x_min = max(locations.values()[0]), min(locations.values()[0])
-y_max, y_min = max(locations.values()[1]), min(locations.values()[1])
+xs = [coord[0] for coord in locations.values()]
+ys = [coord[1] for coord in locations.values()]
+x_max, x_min = max(xs), min(xs)
+y_max, y_min = max(ys), min(ys)
 x_extra_range = (x_max - x_min) / 20
 y_extra_range = (y_max - y_min) / 20
 plot = figure(x_range=Range1d(x_min - x_extra_range, x_max + x_extra_range),
