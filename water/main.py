@@ -185,7 +185,13 @@ def load_pollution_dynamics():
     with open(filename, 'rb') as input_file:
         pollution = pickle.load(input_file)
 
-    return pollution
+    # Choose a default node for pollution injection
+    for node in pollution.keys():
+        if node != 'chemical_start_time':
+            start_node = node
+            break
+
+    return pollution, start_node
 
 
 def plot_bounds(locations):
@@ -210,13 +216,7 @@ def plot_bounds(locations):
 
 
 G, all_base_demands = load_water_network()
-pollution = load_pollution_dynamics()
-
-# Choose a default node for pollution injection
-for node in pollution.keys():
-    if node != 'chemical_start_time':
-        start_node = node
-        break
+pollution, start_node = load_pollution_dynamics()
 
 # Create plottable coordinates for each network node
 locations = {}
