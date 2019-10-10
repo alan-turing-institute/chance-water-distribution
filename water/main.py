@@ -193,11 +193,21 @@ def load_pollution_dynamics():
     with open(filename, 'rb') as input_file:
         pollution = pickle.load(input_file)
 
+    # Determine max and min pollution values and all scenario names
+    max_pols = []
+    min_pols = []
+    scenarios = []
+    for key, df in pollution.items():
+        if key != 'chemical_start_time':
+            scenarios.append(key)
+            v = df.values.ravel()
+            max_pols.append(np.max(v))
+            min_pols.append(np.min(v[v > 0]))
+    max_pol = np.max(max_pols)
+    min_pol = np.min(min_pols)
+
     # Choose a default node for pollution injection
-    for node in pollution.keys():
-        if node != 'chemical_start_time':
-            start_node = node
-            break
+    start_node = scenarios[0]
 
     # Determine the step numbers for the beginning and end of the pollution
     # data. This assumes all pollution scenarios are identical in time to the
@@ -208,18 +218,7 @@ def load_pollution_dynamics():
     # Get the timstep size for the slider from the pollution df
     step = pollution[start_node].index[1] - pollution[start_node].index[0]
 
-    # Determine max and min pollution values
-    max_pols = []
-    min_pols = []
-    for key, df in pollution.items():
-        if key != 'chemical_start_time':
-            v = df.values.ravel()
-            max_pols.append(np.max(v))
-            min_pols.append(np.min(v[v > 0]))
-    max_pol = np.max(max_pols)
-    min_pol = np.min(min_pols)
-
-    return pollution, start_node, start, end, step, max_pol, min_pol
+    return pollution, scenarios, start_node, start, end, step, max_pol, min_pol
 
 
 def plot_bounds(locations):
@@ -245,7 +244,7 @@ def plot_bounds(locations):
 
 G, locations, all_base_demands = load_water_network()
 
-(pollution, start_node, start_pol, end_pol, step_pol,
+(pollution, scenarios, start_node, start_pol, end_pol, step_pol,
  max_pol, min_pol) = load_pollution_dynamics()
 
 # Get pollution values for time zero
@@ -321,11 +320,7 @@ button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 button.on_click(animate)
 
 # Dropdown menu to choose pollution start location
-menu = []
-for node in pollution.keys():
-    if node != 'chemical_start_time':
-        menu.append((node, node))
-
+menu = zip(scenarios, scenarios)
 pollution_location_dropdown = Dropdown(label="Pollution Injection Location",
                                        button_type="danger", menu=menu)
 pollution_location_dropdown.on_change('value', update_colors)
