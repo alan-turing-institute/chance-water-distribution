@@ -177,15 +177,20 @@ def load_water_network():
     return G, all_base_demands
 
 
+def load_pollution_dynamics():
+
+    # Load pollution dynamics
+    # Create pollution as a global var used in some functions
+    filename = join(dirname(__file__), 'data',
+                    'kentucky_water_distribution_networks/Ky2.pkl')
+    with open(filename, 'rb') as input_file:
+        pollution = pickle.load(input_file)
+
+    return pollution
+
+
 G, all_base_demands = load_water_network()
-
-
-# Load pollution dynamics
-# Create pollution as a global var used in some functions
-filename = join(dirname(__file__), 'data',
-                'kentucky_water_distribution_networks/Ky2.pkl')
-with open(filename, 'rb') as input_file:
-    pollution = pickle.load(input_file)
+pollution = load_pollution_dynamics()
 
 # Choose a default node for pollution injection
 for node in pollution.keys():
