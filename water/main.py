@@ -262,10 +262,7 @@ tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
 
 # Add a timer label under plot
-# This is no longer actually visible, there is now a default pollution start
-# node
-timer_text = "[SELECT INJECTION LOCATION]"
-timer = Title(text=timer_text, text_font_size='35pt', text_color='grey')
+timer = Title(text_font_size='35pt', text_color='grey')
 plot.add_layout(timer, 'below')
 
 # Create bokeh graph from the NetworkX object
