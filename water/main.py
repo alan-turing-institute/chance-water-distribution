@@ -178,7 +178,6 @@ def load_water_network():
 
 
 def load_pollution_dynamics():
-
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
     filename = join(dirname(__file__), 'data',
@@ -187,6 +186,27 @@ def load_pollution_dynamics():
         pollution = pickle.load(input_file)
 
     return pollution
+
+
+def plot_bounds(locations):
+    # Get lists of node locations
+    xs = [coord[0] for coord in locations.values()]
+    ys = [coord[1] for coord in locations.values()]
+
+    # Find minimum and maximum coordinates
+    x_max, x_min = max(xs), min(xs)
+    y_max, y_min = max(ys), min(ys)
+
+    # Add padding to boundary
+    x_extra_range = (x_max - x_min) / 20
+    y_extra_range = (y_max - y_min) / 20
+
+    x_lower = x_min - x_extra_range
+    x_upper = x_max + x_extra_range
+    y_lower = y_min - y_extra_range
+    y_upper = y_max + y_extra_range
+
+    return Range1d(x_lower, x_upper), Range1d(y_lower, y_upper)
 
 
 G, all_base_demands = load_water_network()
@@ -206,16 +226,11 @@ for node, node_data in G.nodes().items():
     yd = node_data['pos'][1] + 1170000
     locations[node] = (xd, yd)
 
-# Create the plot with wiggle room:
-xs = [coord[0] for coord in locations.values()]
-ys = [coord[1] for coord in locations.values()]
-x_max, x_min = max(xs), min(xs)
-y_max, y_min = max(ys), min(ys)
-x_extra_range = (x_max - x_min) / 20
-y_extra_range = (y_max - y_min) / 20
-plot = figure(x_range=Range1d(x_min - x_extra_range, x_max + x_extra_range),
-              y_range=Range1d(y_min - y_extra_range, y_max + y_extra_range),
-              active_scroll='wheel_zoom',
+# Determine the plot bounds
+x_bounds, y_bounds = plot_bounds(locations)
+
+# Create figure object
+plot = figure(x_range=x_bounds, y_range=y_bounds, active_scroll='wheel_zoom',
               x_axis_type="mercator", y_axis_type="mercator")
 
 # Use the max and min pollution values for the color range
