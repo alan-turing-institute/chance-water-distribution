@@ -320,12 +320,11 @@ button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 button.on_click(animate)
 
 # Dropdown menu to choose pollution start location
-menu = zip(scenarios, scenarios)
 pollution_location_dropdown = Dropdown(label="Pollution Injection Location",
-                                       button_type="danger", menu=menu)
+                                       button_type="danger", menu=scenarios)
 pollution_location_dropdown.on_change('value', update_colors)
 # Set default pollution start node
-pollution_location_dropdown.value = menu[0][0]
+pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to choose node size and demand weighting
 node_size_slider = Slider(start=1, end=20, value=base_node_size, step=1,
