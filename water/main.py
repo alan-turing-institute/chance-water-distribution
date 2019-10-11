@@ -33,7 +33,7 @@ def get_pollution_values(start_node, timestep):
         for node in G.nodes():
             pollution_values.append(pollution_series[node])
     except KeyError:  # If there is no pollution data for a particular timestep
-        pollution_values = len(G.nodes()) * [0.0]
+        pollution_values = [0.0] * G.number_of_nodes()
     return pollution_values
 
 
@@ -61,13 +61,28 @@ def get_node_outlines(start_node):
 def update_colors(attrname, old, new):
     """Update pollution data used for node colors"""
     start_node = pollution_location_dropdown.value
-    data = graph.node_renderer.data_source.data
-    data['line_color'], data['line_width'] = get_node_outlines(start_node)
     timestep = slider.value
+    data = graph.node_renderer.data_source.data
+
+    data['line_color'], data['line_width'] = get_node_outlines(start_node)
+
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
                   + str(datetime.timedelta(seconds=int(timestep))))
+
     pollution_values = get_pollution_values(start_node, timestep)
     data['colors'] = pollution_values
+
+    edge_values = []
+    try:
+        pollution_series = pollution[start_node].loc[timestep]
+    except KeyError:
+        pollution_series = dict(zip(pollution[start_node].columns,
+                                    [0]*G.number_of_nodes()))
+    for node1, node2 in G.edges():
+        node1_pollution = pollution_series[node1]
+        node2_pollution = pollution_series[node2]
+        edge_values.append((node1_pollution + node2_pollution) / 2.)
+    graph.edge_renderer.data_source.data['colors'] = edge_values
 
 
 def update_node_sizes(attrname, old, new):
@@ -278,7 +293,7 @@ color_bar = ColorBar(color_mapper=color_mapper['transform'],
 plot.add_layout(color_bar, 'right')
 
 # Create edges
-graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
+graph.edge_renderer.glyph = MultiLine(line_width=2.0, line_color=color_mapper)
 
 # Green hover for both nodes and edges
 hover_color = '#abdda4'
