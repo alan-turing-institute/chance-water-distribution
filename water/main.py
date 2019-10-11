@@ -64,7 +64,7 @@ def get_node_sizes(base_node_size, node_demand_weighting):
             + base_node_size for i in all_base_demands]
 
 
-def get_node_outlines(injection):
+def get_node_outlines(injection, node_to_highlight=None):
     """Get the color and width for each node in the graph These should be the
     same in every case except for the pollution start node"""
     # Color of injection node
@@ -85,6 +85,9 @@ def get_node_outlines(injection):
             # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(3)
+        if node == node_to_highlight:
+            outline_colors.append("#42f548")
+            outline_widths.append(6)
         else:
             # Otherwise color based on the node type
             node_type = G.node[node]['type']
@@ -122,6 +125,13 @@ def update_colors(attrname, old, new):
         node2_pollution = series[node2]
         edge_values.append((node1_pollution + node2_pollution) / 2.)
     graph.edge_renderer.data_source.data['colors'] = edge_values
+
+
+def update_node_highlight(attrname, old, new):
+    """Highlight a chosen node"""
+    start_node = pollution_location_dropdown.value
+    node_to_highlight = node_highlight_dropdown.value
+    data['line_color'], data['line_width'] = get_node_outlines(start_node, node_to_highlight)
 
 
 def update_node_sizes(attrname, old, new):
@@ -380,9 +390,15 @@ button.on_click(animate)
 
 # Dropdown menu to choose pollution start location
 pollution_location_dropdown = Dropdown(label="Pollution Injection Location",
-                                       button_type="danger", menu=scenarios)
+                                       button_type="primary", menu=scenarios)
 pollution_location_dropdown.on_change('value', update_colors)
 pollution_location_dropdown.value = scenarios[0]
+
+# Dropdown menu to highlight a particular node
+node_highlight_dropdown = Dropdown(label="Locate node",
+                                       button_type="success", menu=list(G.nodes()))
+node_highlight_dropdown.on_change('value', update_node_highlight)
+node_highlight_dropdown.value = None
 
 # Dropdown menu to choose node size and demand weighting
 node_size_slider = Slider(start=1, end=20, value=base_node_size, step=1,
@@ -406,8 +422,11 @@ animation_speed = speeds['medium']
 
 # Create the layout for the graph and widgets
 layout = column(
-    row(row(node_size_slider, demand_weight_slider),
-        pollution_location_dropdown, height=50, sizing_mode="stretch_width"),
+    row(
+        row(node_size_slider, demand_weight_slider),
+        row(pollution_location_dropdown, node_highlight_dropdown),
+        height=50, sizing_mode="stretch_width"
+    ),
     plot,
     row(button, speed_dropdown, slider, height=50,
         sizing_mode="stretch_width"),
