@@ -66,7 +66,7 @@ def get_node_sizes(base_node_size, node_demand_weighting):
 
 def get_node_outlines(injection, node_to_highlight=None):
     """Get the color and width for each node in the graph These should be the
-    same in every case except for the pollution start node"""
+    same in every case except for the pollution start node and a chosen node to highlight if provided"""
     # Color of injection node
     injection_color = "#34c3eb"
     # Create a default dictionary for node types, any node with a type not in
