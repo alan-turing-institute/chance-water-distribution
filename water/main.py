@@ -15,7 +15,6 @@ import pickle
 from statistics import mean
 import wntr
 
-
 callback_id = None
 base_node_size = 8
 node_demand_weighting = 15
@@ -282,10 +281,12 @@ plot.add_layout(color_bar, 'right')
 graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
 
 # Green hover for both nodes and edges
-graph.node_renderer.hover_glyph = Circle(size="size", fill_color='#abdda4',
+hover_color = '#abdda4'
+graph.node_renderer.hover_glyph = Circle(size="size", fill_color=hover_color,
                                          line_color="line_color",
                                          line_width="line_width")
-graph.edge_renderer.hover_glyph = MultiLine(line_color='#abdda4', line_width=1)
+graph.edge_renderer.hover_glyph = MultiLine(line_color=hover_color,
+                                            line_width=1)
 
 # When we hover over nodes, highlight adjacent edges too
 graph.selection_policy = NodesAndLinkedEdges()
