@@ -85,7 +85,7 @@ def get_node_outlines(injection, node_to_highlight=None):
             # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(3)
-        if node == node_to_highlight:
+        elif node == node_to_highlight:
             outline_colors.append("#42f548")
             outline_widths.append(6)
         else:
