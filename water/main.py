@@ -76,7 +76,8 @@ def get_node_outlines(start_node):
 
 
 def update_colors(attrname, old, new):
-    """Update pollution data used for node colors"""
+    """Update the appearance of the pollution dynamics network, including node
+    and edge colors"""
     # Get injection node
     start_node = pollution_location_dropdown.value
     # Get timestep
