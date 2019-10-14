@@ -389,17 +389,17 @@ slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
 slider.on_change('value', update_colors)
 
 # Play button to move the slider for the pollution timeseries
-button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
+button = Button(label=BUTTON_LABEL_PAUSED, button_type="danger")
 button.on_click(animate)
 
 # Dropdown menu to choose pollution start location
-pollution_location_dropdown = Dropdown(label="Pollution Injection Location",
+pollution_location_dropdown = Dropdown(label="Pollution Start Node",
                                        button_type="primary", menu=scenarios)
 pollution_location_dropdown.on_change('value', update_colors)
 pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to highlight a particular node
-node_highlight_dropdown = Dropdown(label="Locate specific node",
+node_highlight_dropdown = Dropdown(label="Highlight node",
                                        button_type="success", menu=list(G.nodes()))
 node_highlight_dropdown.on_change('value', update_node_highlight)
 node_highlight_dropdown.value = None
@@ -422,24 +422,24 @@ demand_weight_slider.value = node_demand_weighting
 
 # Speed selection dropdown widget
 # Animation speeds and speed drop down entries. 'Speeds' are in ms per frame
-speed_menu = ['slow', 'medium', 'fast']
+speed_menu = ['Slow', 'Medium', 'Fast']
 speeds = dict(zip(speed_menu, [250, 100, 30]))
-speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
+speed_dropdown = Dropdown(label="Animation Speed", button_type="warning",
                           menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
 # Starting animation speed
-animation_speed = speeds['medium']
+animation_speed = speeds['Medium']
 
 # Create the layout for the graph and widgets
 layout = column(
     row(
         row(node_size_slider, demand_weight_slider),
-        row(pollution_location_dropdown, node_highlight_dropdown, node_type_dropdown),
+        row(node_highlight_dropdown, node_type_dropdown, pollution_location_dropdown),
         height=50, sizing_mode="stretch_width"
     ),
-    plot,
     row(button, speed_dropdown, slider, height=50,
         sizing_mode="stretch_width"),
+    plot,
     sizing_mode="stretch_both"
 )
 
