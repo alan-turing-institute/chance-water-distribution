@@ -77,19 +77,25 @@ def get_node_outlines(start_node):
 
 def update_colors(attrname, old, new):
     """Update pollution data used for node colors"""
+    # Get injection node
     start_node = pollution_location_dropdown.value
+    # Get timestep
     timestep = slider.value
-    data = graph.node_renderer.data_source.data
+    # Get pollution for each node for the given injection site and timestep
+    series = pollution_series(pollution, start_node, timestep)
 
+    # Set node outlines
+    data = graph.node_renderer.data_source.data
     data['line_color'], data['line_width'] = get_node_outlines(start_node)
 
+    # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
                   + str(datetime.timedelta(seconds=int(timestep))))
 
-    series = pollution_series(pollution, start_node, timestep)
-    pollution_values = list(series)
-    data['colors'] = pollution_values
+    # Update node colours
+    data['colors'] = list(series)
 
+    # Update edge colours
     edge_values = []
     for node1, node2 in G.edges():
         node1_pollution = series[node1]
