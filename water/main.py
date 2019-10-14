@@ -85,7 +85,7 @@ def get_node_outlines(injection, node_to_highlight=None):
             # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(3)
-        elif node == node_to_highlight:
+        elif node == node_highlight:
             outline_colors.append("#07db1c")
             outline_widths.append(3)
         elif node_type_str in node:
@@ -133,9 +133,10 @@ def update_colors(attrname, old, new):
 def update_node_highlight(attrname, old, new):
     """Highlight a chosen node"""
     start_node = pollution_location_dropdown.value
-    node_to_highlight = node_highlight_dropdown.value
-    node_type_to_highlight = node_type_dropdown.value
-    data['line_color'], data['line_width'] = get_node_outlines(start_node, node_to_highlight, node_type_to_highlight)
+    node_highlight = node_highlight_dropdown.value
+    node_type_highlight = node_type_dropdown.value
+    lines = get_node_outlines(start_node, node_highlight, node_type_highlight)
+    data['line_color'], data['line_width'] = lines
 
 
 def update_node_sizes(attrname, old, new):
@@ -394,19 +395,25 @@ play_button.on_click(animate)
 
 # Dropdown menu to choose pollution start location
 pollution_location_dropdown = Dropdown(label="Pollution Start Node",
-                                       css_classes =['blue_button'], menu=scenarios)
+                                       css_classes=['blue_button'],
+                                       menu=scenarios)
 pollution_location_dropdown.on_change('value', update_colors)
 pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to highlight a particular node
 node_highlight_dropdown = Dropdown(label="Highlight node",
-                                       css_classes =['green_button'], menu=list(G.nodes()))
+                                   css_classes=['green_button'],
+                                   menu=list(G.nodes()))
 node_highlight_dropdown.on_change('value', update_node_highlight)
 node_highlight_dropdown.value = None
 
 # Dropdown menu to highlight a node type
 node_type_dropdown = Dropdown(label="Highlight node type",
-                                       css_classes =['purple_button'], menu=['Resevoir', 'Tank', 'Pump', 'Junction'])
+                                    css_classes=['purple_button'],
+                                    menu=['Resevoir',
+                                          'Tank',
+                                          'Pump',
+                                          'Junction'])
 node_type_dropdown.on_change('value', update_node_highlight)
 node_type_dropdown.value = None
 
