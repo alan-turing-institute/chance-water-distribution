@@ -7,6 +7,7 @@ from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
+from collections import defaultdict
 import colorcet as cc
 import datetime
 import numpy as np
@@ -46,33 +47,28 @@ def get_node_sizes(base_node_size, node_demand_weighting):
 def get_node_outlines(injection):
     """Get the color and width for each node in the graph These should be the
     same in every case except for the pollution start node"""
+    # Color of injection node
     injection_color = "#34c3eb"
-    junction_color = "gray"
-    reservoir_color = "orange"
-    tank_color = "green"
-    default_color = "magenta"
+    # Create a default dictionary for node types, any node with a type not in
+    # the dictionary gets the default color
+    colors = defaultdict(lambda: "magenta")
+    colors.update({
+        'Junction': 'gray',
+        'Reservoir': 'orange',
+        'Tank': 'green'
+        })
 
     outline_colors = []
     outline_widths = []
     for node in G.nodes():
-        # Colour injection node regardless of its type
         if node == injection:
+            # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(3)
-            continue
-
-        node_type = G.node[node]['type']
-        if node_type == 'Junction':
-            outline_colors.append(junction_color)
-            outline_widths.append(2)
-        elif node_type == 'Reservoir':
-            outline_colors.append(reservoir_color)
-            outline_widths.append(2)
-        elif node_type == 'Tank':
-            outline_colors.append(tank_color)
-            outline_widths.append(2)
         else:
-            outline_colors.append(default_color)
+            # Otherwise color based on the node type
+            node_type = G.node[node]['type']
+            outline_colors.append(colors[node_type])
             outline_widths.append(2)
 
     return outline_colors, outline_widths
