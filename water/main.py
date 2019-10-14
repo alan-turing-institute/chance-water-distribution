@@ -406,7 +406,7 @@ node_highlight_dropdown.value = None
 
 # Dropdown menu to highlight a node type
 node_type_dropdown = Dropdown(label="Highlight node type",
-                                       button_type="warning", menu=['Resevoir', 'Tank', 'Pump', 'Junction'])
+                                       button_type="default", menu=['Resevoir', 'Tank', 'Pump', 'Junction'])
 node_type_dropdown.on_change('value', update_node_highlight)
 node_type_dropdown.value = None
 
