@@ -1,7 +1,7 @@
 from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider,
+from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider, Span,
                           Button, ColorBar, LogTicker, Title, ColumnDataSource)
 from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
@@ -71,6 +71,7 @@ def update_colors(attrname, old, new):
     pollution_history = pollution[start_node]['J-10']
     pollution_history_source.data['time'] = pollution_history.index
     pollution_history_source.data['pollution_value'] = pollution_history.values
+    timestep_span.location = timestep
 
 
 def update_node_sizes(attrname, old, new):
@@ -319,6 +320,9 @@ pollution_history_source.data['time'] = pollution_history.index
 pollution_history_source.data['pollution_value'] = pollution_history.values
 pollution_history_plot.line('time', 'pollution_value',
                             source=pollution_history_source)
+timestep_span = Span(location=0, dimension='height', line_dash='dashed',
+                     line_width=1.5)
+pollution_history_plot.add_layout(timestep_span)
 
 # Slider to change the timestep of the pollution data visualised
 slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
