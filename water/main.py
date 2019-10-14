@@ -340,11 +340,16 @@ speed_dropdown.on_change('value', update_speed)
 # Starting animation speed
 animation_speed = speeds['medium']
 
+# Pollution history plot
+pollution_history_plot = figure()
+pollution_history = pollution['J-300']['J-10']
+pollution_history_plot.line(pollution_history.index, pollution_history.values)
+
 # Create the layout for the graph and widgets
 layout = column(
     row(row(node_size_slider, demand_weight_slider),
         pollution_location_dropdown, height=50, sizing_mode="stretch_width"),
-    plot,
+    row(plot, pollution_history_plot),
     row(button, speed_dropdown, slider, height=50,
         sizing_mode="stretch_width"),
     sizing_mode="stretch_both"
