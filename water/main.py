@@ -44,10 +44,13 @@ def pollution_series(pollution, injection, timestep):
         Pandas.Series: The pollution value at each node for the given timestep
             and injection location.
     """
+    # Get pollution dataframe for the given injection site
     dataframe = pollution[injection]
+    # Extract the pollution series at the given timestep
     if timestep in dataframe.index:
         series = dataframe.loc[timestep]
     else:
+        # Construct a series of zero pollution
         series = pd.Series(dict(zip(pollution[injection].columns,
                                     [0]*G.number_of_nodes())))
 
