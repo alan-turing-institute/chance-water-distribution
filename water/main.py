@@ -87,7 +87,10 @@ def get_node_outlines(injection, node_to_highlight=None):
             outline_widths.append(3)
         elif node == node_to_highlight:
             outline_colors.append("#42f548")
-            outline_widths.append(6)
+            outline_widths.append(3)
+        elif node_type_str in node:
+            outline_colors.append("purple")
+            outline_widths.append(3)
         else:
             # Otherwise color based on the node type
             node_type = G.node[node]['type']
@@ -131,7 +134,8 @@ def update_node_highlight(attrname, old, new):
     """Highlight a chosen node"""
     start_node = pollution_location_dropdown.value
     node_to_highlight = node_highlight_dropdown.value
-    data['line_color'], data['line_width'] = get_node_outlines(start_node, node_to_highlight)
+    node_type_to_highlight = node_type_dropdown.value
+    data['line_color'], data['line_width'] = get_node_outlines(start_node, node_to_highlight, node_type_to_highlight)
 
 
 def update_node_sizes(attrname, old, new):
@@ -395,10 +399,16 @@ pollution_location_dropdown.on_change('value', update_colors)
 pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to highlight a particular node
-node_highlight_dropdown = Dropdown(label="Locate node",
+node_highlight_dropdown = Dropdown(label="Locate specific node",
                                        button_type="success", menu=list(G.nodes()))
 node_highlight_dropdown.on_change('value', update_node_highlight)
 node_highlight_dropdown.value = None
+
+# Dropdown menu to highlight a node type
+node_type_dropdown = Dropdown(label="Highlight node type",
+                                       button_type="warning", menu=['Resevoir', 'Tank', 'Pump', 'Junction'])
+node_type_dropdown.on_change('value', update_node_highlight)
+node_type_dropdown.value = None
 
 # Dropdown menu to choose node size and demand weighting
 node_size_slider = Slider(start=1, end=20, value=base_node_size, step=1,
@@ -424,7 +434,7 @@ animation_speed = speeds['medium']
 layout = column(
     row(
         row(node_size_slider, demand_weight_slider),
-        row(pollution_location_dropdown, node_highlight_dropdown),
+        row(pollution_location_dropdown, node_highlight_dropdown, node_type_dropdown),
         height=50, sizing_mode="stretch_width"
     ),
     plot,
