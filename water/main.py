@@ -156,12 +156,12 @@ def animate():
     """Move the slider every 30 milliseconds on play button click"""
     global callback_id
     global animation_speed
-    if button.label == BUTTON_LABEL_PAUSED:
-        button.label = BUTTON_LABEL_PLAYING
+    if play_button.label == BUTTON_LABEL_PAUSED:
+        play_button.label = BUTTON_LABEL_PLAYING
         callback_id = curdoc().add_periodic_callback(animate_update_colors,
                                                      animation_speed)
-    elif button.label == BUTTON_LABEL_PLAYING:
-        button.label = BUTTON_LABEL_PAUSED
+    elif play_button.label == BUTTON_LABEL_PLAYING:
+        play_button.label = BUTTON_LABEL_PAUSED
         curdoc().remove_periodic_callback(callback_id)
 
 
@@ -174,7 +174,7 @@ def update_speed(attr, old, new):
     animation_speed = speeds[speed_dropdown.value]
 
     # If animation is playing recreate the periodic callback
-    if button.label == BUTTON_LABEL_PLAYING:
+    if play_button.label == BUTTON_LABEL_PLAYING:
         curdoc().remove_periodic_callback(callback_id)
         callback_id = curdoc().add_periodic_callback(animate_update_colors,
                                                      animation_speed)
