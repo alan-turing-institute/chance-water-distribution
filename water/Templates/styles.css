@@ -1,0 +1,17 @@
+.purple_button button.bk.bk-btn.bk-btn-default {
+    background-color: purple;
+    border-color: purple;
+    color: white;
+}
+
+.blue_button button.bk.bk-btn.bk-btn-default {
+    background-color: #34c3eb;
+    border-color: #34c3eb;
+    color: white;
+}
+
+.green_button button.bk.bk-btn.bk-btn-default {
+    background-color: #07db1c;
+    border-color: #07db1c;
+    color: white;
+}
