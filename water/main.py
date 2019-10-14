@@ -389,8 +389,8 @@ slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
 slider.on_change('value', update_colors)
 
 # Play button to move the slider for the pollution timeseries
-button = Button(label=BUTTON_LABEL_PAUSED, button_type="danger")
-button.on_click(animate)
+play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="danger")
+play_button.on_click(animate)
 
 # Dropdown menu to choose pollution start location
 pollution_location_dropdown = Dropdown(label="Pollution Start Node",
@@ -431,14 +431,18 @@ speed_dropdown.on_change('value', update_speed)
 animation_speed = speeds['Medium']
 
 # Create the layout for the graph and widgets
-layout = column(
-    row(
-        row(node_size_slider, demand_weight_slider),
-        row(node_highlight_dropdown, node_type_dropdown, pollution_location_dropdown),
-        height=50, sizing_mode="stretch_width"
+layout = row(
+    column(
+        node_highlight_dropdown,
+        node_type_dropdown,
+        pollution_location_dropdown,
+        node_size_slider,
+        demand_weight_slider,
+        play_button,
+        speed_dropdown,
+        slider,
+        width=200, sizing_mode="stretch_height"
     ),
-    row(button, speed_dropdown, slider, height=50,
-        sizing_mode="stretch_width"),
     plot,
     sizing_mode="stretch_both"
 )
