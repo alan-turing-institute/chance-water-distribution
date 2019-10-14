@@ -43,18 +43,38 @@ def get_node_sizes(base_node_size, node_demand_weighting):
             + base_node_size for i in all_base_demands]
 
 
-def get_node_outlines(start_node):
+def get_node_outlines(injection):
     """Get the color and width for each node in the graph These should be the
     same in every case except for the pollution start node"""
+    injection_color = "#34c3eb"
+    junction_color = "gray"
+    reservoir_color = "orange"
+    tank_color = "green"
+    default_color = "magenta"
+
     outline_colors = []
     outline_widths = []
     for node in G.nodes():
-        if node == start_node:
-            outline_colors.append("#34c3eb")
+        # Colour injection node regardless of its type
+        if node == injection:
+            outline_colors.append(injection_color)
             outline_widths.append(3)
+            continue
+
+        node_type = G.node[node]['type']
+        if node_type == 'Junction':
+            outline_colors.append(junction_color)
+            outline_widths.append(2)
+        elif node_type == 'Reservoir':
+            outline_colors.append(reservoir_color)
+            outline_widths.append(2)
+        elif node_type == 'Tank':
+            outline_colors.append(tank_color)
+            outline_widths.append(2)
         else:
-            outline_colors.append("black")
-            outline_widths.append(1)
+            outline_colors.append(default_color)
+            outline_widths.append(2)
+
     return outline_colors, outline_widths
 
 
