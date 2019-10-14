@@ -86,7 +86,7 @@ def get_node_outlines(injection, node_to_highlight=None):
             outline_colors.append(injection_color)
             outline_widths.append(3)
         elif node == node_to_highlight:
-            outline_colors.append("#42f548")
+            outline_colors.append("#07db1c")
             outline_widths.append(3)
         elif node_type_str in node:
             outline_colors.append("purple")
@@ -389,24 +389,24 @@ slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
 slider.on_change('value', update_colors)
 
 # Play button to move the slider for the pollution timeseries
-play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="danger")
+play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
 # Dropdown menu to choose pollution start location
 pollution_location_dropdown = Dropdown(label="Pollution Start Node",
-                                       button_type="primary", menu=scenarios)
+                                       css_classes =['blue_button'], menu=scenarios)
 pollution_location_dropdown.on_change('value', update_colors)
 pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to highlight a particular node
 node_highlight_dropdown = Dropdown(label="Highlight node",
-                                       button_type="success", menu=list(G.nodes()))
+                                       css_classes =['green_button'], menu=list(G.nodes()))
 node_highlight_dropdown.on_change('value', update_node_highlight)
 node_highlight_dropdown.value = None
 
 # Dropdown menu to highlight a node type
 node_type_dropdown = Dropdown(label="Highlight node type",
-                                       button_type="default", menu=['Resevoir', 'Tank', 'Pump', 'Junction'])
+                                       css_classes =['purple_button'], menu=['Resevoir', 'Tank', 'Pump', 'Junction'])
 node_type_dropdown.on_change('value', update_node_highlight)
 node_type_dropdown.value = None
 
@@ -424,7 +424,7 @@ demand_weight_slider.value = node_demand_weighting
 # Animation speeds and speed drop down entries. 'Speeds' are in ms per frame
 speed_menu = ['Slow', 'Medium', 'Fast']
 speeds = dict(zip(speed_menu, [250, 100, 30]))
-speed_dropdown = Dropdown(label="Animation Speed", button_type="warning",
+speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
                           menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
 # Starting animation speed
