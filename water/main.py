@@ -68,6 +68,9 @@ def update_colors(attrname, old, new):
                   + str(datetime.timedelta(seconds=int(timestep))))
     pollution_values = get_pollution_values(start_node, timestep)
     data['colors'] = pollution_values
+    pollution_history = pollution[start_node]['J-10']
+    pollution_history_source.data['time'] = pollution_history.index
+    pollution_history_source.data['pollution_value'] = pollution_history.values
 
 
 def update_node_sizes(attrname, old, new):
@@ -306,6 +309,17 @@ TOOLTIPS = [
 ]
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
+# Pollution history plot
+pollution_history_plot = figure()
+pollution_history_source = ColumnDataSource(
+    data=dict(time=[], pollution_value=[])
+    )
+pollution_history = pollution[start_node]['J-10']
+pollution_history_source.data['time'] = pollution_history.index
+pollution_history_source.data['pollution_value'] = pollution_history.values
+pollution_history_plot.line('time', 'pollution_value',
+                            source=pollution_history_source)
+
 # Slider to change the timestep of the pollution data visualised
 slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
 slider.on_change('value', update_colors)
@@ -339,17 +353,6 @@ speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
 speed_dropdown.on_change('value', update_speed)
 # Starting animation speed
 animation_speed = speeds['medium']
-
-# Pollution history plot
-pollution_history_plot = figure()
-pollution_history_source = ColumnDataSource(
-    data=dict(time=[], pollution_value=[])
-    )
-pollution_history = pollution['J-300']['J-10']
-pollution_history_source.data['time'] = pollution_history.index
-pollution_history_source.data['pollution_value'] = pollution_history.values
-pollution_history_plot.line('time', 'pollution_value',
-                            source=pollution_history_source)
 
 # Create the layout for the graph and widgets
 layout = column(
