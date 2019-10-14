@@ -11,6 +11,7 @@ import colorcet as cc
 import datetime
 import numpy as np
 from os.path import dirname, join
+import pandas as pd
 import pickle
 from statistics import mean
 import wntr
@@ -24,17 +25,33 @@ BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
 
-def get_pollution_values(start_node, timestep):
-    """Get a pollution value for each node when the pollution started at a
-    particular node"""
-    try:
-        pollution_series = pollution[start_node].loc[timestep]
-        pollution_values = []
-        for node in G.nodes():
-            pollution_values.append(pollution_series[node])
-    except KeyError:  # If there is no pollution data for a particular timestep
-        pollution_values = [0.0] * G.number_of_nodes()
-    return pollution_values
+def pollution_series(pollution, injection, timestep):
+    """
+    Produce a pandas series of the pollution for each node for a given
+    injection site and timestep.
+
+    If the timestep has no pollution data a series of zeroes is returned.
+
+    Args:
+        pollution (dict): A dictionary of the pollution dynamics as produced by
+            wntr. The keys are injection sites and the values are a Pandas
+            Dataframe describing the pollution dynamics.  The columns of the
+            Dataframe are the node labels and the index is a set of timesteps.
+        injection (str): The node label of the injection site.
+        timestep (int): The time step.
+
+    Returns:
+        Pandas.Series: The pollution value at each node for the given timestep
+            and injection location.
+    """
+    dataframe = pollution[injection]
+    if timestep in dataframe.index:
+        series = dataframe.loc[timestep]
+    else:
+        series = pd.Series(dict(zip(pollution[start_node].columns,
+                                    [0]*G.number_of_nodes())))
+
+    return series
 
 
 def get_node_sizes(base_node_size, node_demand_weighting):
@@ -69,18 +86,14 @@ def update_colors(attrname, old, new):
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
                   + str(datetime.timedelta(seconds=int(timestep))))
 
-    pollution_values = get_pollution_values(start_node, timestep)
+    series = pollution_series(pollution, start_node, timestep)
+    pollution_values = list(series)
     data['colors'] = pollution_values
 
     edge_values = []
-    try:
-        pollution_series = pollution[start_node].loc[timestep]
-    except KeyError:
-        pollution_series = dict(zip(pollution[start_node].columns,
-                                    [0]*G.number_of_nodes()))
     for node1, node2 in G.edges():
-        node1_pollution = pollution_series[node1]
-        node2_pollution = pollution_series[node2]
+        node1_pollution = series[node1]
+        node2_pollution = series[node2]
         edge_values.append((node1_pollution + node2_pollution) / 2.)
     graph.edge_renderer.data_source.data['colors'] = edge_values
 
@@ -256,7 +269,7 @@ G, locations, all_base_demands = load_water_network()
  max_pol, min_pol) = load_pollution_dynamics()
 
 # Get pollution values for time zero
-pollution_values = get_pollution_values(start_node, 0)
+pollution_values = list(pollution_series(pollution, start_node, 0))
 
 # Create figure object
 x_bounds, y_bounds = plot_bounds(locations)
