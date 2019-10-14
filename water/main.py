@@ -48,7 +48,7 @@ def pollution_series(pollution, injection, timestep):
     if timestep in dataframe.index:
         series = dataframe.loc[timestep]
     else:
-        series = pd.Series(dict(zip(pollution[start_node].columns,
+        series = pd.Series(dict(zip(pollution[injection].columns,
                                     [0]*G.number_of_nodes())))
 
     return series
