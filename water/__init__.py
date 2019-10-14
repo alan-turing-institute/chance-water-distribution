@@ -1,7 +1,5 @@
-from .main import get_pollution_values
-from .main import get_node_sizes
+from .main import pollution_series
 
 __all__ = [
-    'get_pollution_values',
-    'get_node_sizes',
+    'pollution_series'
 ]
