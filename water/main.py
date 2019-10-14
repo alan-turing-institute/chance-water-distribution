@@ -2,7 +2,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider,
-                          Button, ColorBar, LogTicker, Title)
+                          Button, ColorBar, LogTicker, Title, ColumnDataSource)
 from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -342,8 +342,14 @@ animation_speed = speeds['medium']
 
 # Pollution history plot
 pollution_history_plot = figure()
+pollution_history_source = ColumnDataSource(
+    data=dict(time=[], pollution_value=[])
+    )
 pollution_history = pollution['J-300']['J-10']
-pollution_history_plot.line(pollution_history.index, pollution_history.values)
+pollution_history_source.data['time'] = pollution_history.index
+pollution_history_source.data['pollution_value'] = pollution_history.values
+pollution_history_plot.line('time', 'pollution_value',
+                            source=pollution_history_source)
 
 # Create the layout for the graph and widgets
 layout = column(
