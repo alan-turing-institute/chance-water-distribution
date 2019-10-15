@@ -105,14 +105,15 @@ def update_colors(attrname, old, new):
     and edge colors"""
     # Get injection node
     start_node = pollution_location_dropdown.value
-    # Get timestep
+    node_highlight = node_highlight_dropdown.value
+    node_type_highlight = node_type_dropdown.value
     timestep = slider.value
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(pollution, start_node, timestep)
 
     # Set node outlines
     data = graph.node_renderer.data_source.data
-    data['line_color'], data['line_width'] = get_node_outlines(start_node)
+    data['line_color'], data['line_width'] = get_node_outlines(start_node, node_highlight)
 
     # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
@@ -393,13 +394,6 @@ slider.on_change('value', update_colors)
 play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
-# Dropdown menu to choose pollution start location
-pollution_location_dropdown = Dropdown(label="Pollution Start Node",
-                                       css_classes=['blue_button'],
-                                       menu=scenarios)
-pollution_location_dropdown.on_change('value', update_colors)
-pollution_location_dropdown.value = scenarios[0]
-
 # Dropdown menu to highlight a particular node
 node_highlight_dropdown = Dropdown(label="Highlight node",
                                    css_classes=['green_button'],
@@ -416,6 +410,13 @@ node_type_dropdown = Dropdown(label="Highlight node type",
                                           'Junction'])
 node_type_dropdown.on_change('value', update_node_highlight)
 node_type_dropdown.value = None
+
+# Dropdown menu to choose pollution start location
+pollution_location_dropdown = Dropdown(label="Pollution Start Node",
+                                       css_classes=['blue_button'],
+                                       menu=scenarios)
+pollution_location_dropdown.on_change('value', update_colors)
+pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to choose node size and demand weighting
 node_size_slider = Slider(start=1, end=20, value=base_node_size, step=1,
