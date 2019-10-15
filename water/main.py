@@ -64,11 +64,11 @@ def get_node_sizes(base_node_size, node_demand_weighting):
             + base_node_size for i in all_base_demands]
 
 
-def get_node_outlines(injection, node_to_highlight=None):
+def get_node_outlines(injection, node_highlight=None):
     """Get the color and width for each node in the graph These should be the
     same in every case except for the pollution start node and a chosen node to highlight if provided"""
     # Color of injection node
-    injection_color = "#34c3eb"
+    injection_color = "#34c3eb"  # Light blue
     # Create a default dictionary for node types, any node with a type not in
     # the dictionary gets the default color
     colors = defaultdict(lambda: "magenta")
@@ -86,10 +86,7 @@ def get_node_outlines(injection, node_to_highlight=None):
             outline_colors.append(injection_color)
             outline_widths.append(3)
         elif node == node_highlight:
-            outline_colors.append("#07db1c")
-            outline_widths.append(3)
-        elif node_type_str in node:
-            outline_colors.append("purple")
+            outline_colors.append("#07db1c")  # Bright green
             outline_widths.append(3)
         else:
             # Otherwise color based on the node type
@@ -106,7 +103,7 @@ def update_colors(attrname, old, new):
     # Get injection node
     start_node = pollution_location_dropdown.value
     node_highlight = node_highlight_dropdown.value
-    node_type_highlight = node_type_dropdown.value
+    # node_type_highlight = node_type_dropdown.value
     timestep = slider.value
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(pollution, start_node, timestep)
@@ -135,8 +132,8 @@ def update_node_highlight(attrname, old, new):
     """Highlight a chosen node"""
     start_node = pollution_location_dropdown.value
     node_highlight = node_highlight_dropdown.value
-    node_type_highlight = node_type_dropdown.value
-    lines = get_node_outlines(start_node, node_highlight, node_type_highlight)
+    # node_type_highlight = node_type_dropdown.value
+    lines = get_node_outlines(start_node, node_highlight)
     data['line_color'], data['line_width'] = lines
 
 
