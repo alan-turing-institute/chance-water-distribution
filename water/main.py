@@ -64,10 +64,12 @@ def get_node_sizes(base_node_size, node_demand_weighting):
             + base_node_size for i in all_base_demands]
 
 
-def get_node_outlines(injection):
-    """Get the color and width for each node in the graph These should be the
-    same in every case except for the pollution start node"""
-    # Color of injection node
+def get_node_outlines(injection, node_highlight=None, type_highlight=None):
+    """Get the color and width for each node in the graph.
+    These should be the same in every case except for the
+    pollution start node and a chosen node to highlight if provided"""
+    # Color of injection node (Light blue)
+    # (color used by injection button, update in CSS too on change)
     injection_color = "#34c3eb"
     # Create a default dictionary for node types, any node with a type not in
     # the dictionary gets the default color
@@ -85,10 +87,18 @@ def get_node_outlines(injection):
             # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(3)
+        elif node == node_highlight:
+            # Color selected node bright green
+            # (color used by highlight button, update in CSS too on change)
+            outline_colors.append("#07db1c")
+            outline_widths.append(3)
         else:
             # Otherwise color based on the node type
             node_type = G.node[node]['type']
-            outline_colors.append(colors[node_type])
+            if node_type == type_highlight:
+                outline_colors.append('purple')
+            else:
+                outline_colors.append(colors[node_type])
             outline_widths.append(2)
 
     return outline_colors, outline_widths
@@ -99,7 +109,8 @@ def update_colors(attrname, old, new):
     and edge colors"""
     # Get injection node
     start_node = pollution_location_dropdown.value
-    # Get timestep
+    node_highlight = node_highlight_dropdown.value
+    type_highlight = node_type_dropdown.value
     timestep = slider.value
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(pollution, start_node, timestep)
@@ -108,7 +119,8 @@ def update_colors(attrname, old, new):
 
     # Set node outlines
     data = graph.node_renderer.data_source.data
-    data['line_color'], data['line_width'] = get_node_outlines(start_node)
+    lines = get_node_outlines(start_node, node_highlight, type_highlight)
+    data['line_color'], data['line_width'] = lines
 
     # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
@@ -132,6 +144,15 @@ def update_colors(attrname, old, new):
     timestep_span.update(location=timestep)
 
 
+def update_node_highlight(attrname, old, new):
+    """Highlight a chosen node"""
+    start_node = pollution_location_dropdown.value
+    node_highlight = node_highlight_dropdown.value
+    type_highlight = node_type_dropdown.value
+    lines = get_node_outlines(start_node, node_highlight, type_highlight)
+    data['line_color'], data['line_width'] = lines
+
+
 def update_node_sizes(attrname, old, new):
     """Update the sizes of the nodes in the graph"""
     graph.node_renderer.data_source.data['size'] = get_node_sizes(
@@ -150,12 +171,12 @@ def animate():
     """Move the slider every 30 milliseconds on play button click"""
     global callback_id
     global animation_speed
-    if button.label == BUTTON_LABEL_PAUSED:
-        button.label = BUTTON_LABEL_PLAYING
+    if play_button.label == BUTTON_LABEL_PAUSED:
+        play_button.label = BUTTON_LABEL_PLAYING
         callback_id = curdoc().add_periodic_callback(animate_update_colors,
                                                      animation_speed)
-    elif button.label == BUTTON_LABEL_PLAYING:
-        button.label = BUTTON_LABEL_PAUSED
+    elif play_button.label == BUTTON_LABEL_PLAYING:
+        play_button.label = BUTTON_LABEL_PAUSED
         curdoc().remove_periodic_callback(callback_id)
 
 
@@ -168,7 +189,7 @@ def update_speed(attr, old, new):
     animation_speed = speeds[speed_dropdown.value]
 
     # If animation is playing recreate the periodic callback
-    if button.label == BUTTON_LABEL_PLAYING:
+    if play_button.label == BUTTON_LABEL_PLAYING:
         curdoc().remove_periodic_callback(callback_id)
         callback_id = curdoc().add_periodic_callback(animate_update_colors,
                                                      animation_speed)
@@ -348,7 +369,7 @@ graph.edge_renderer.glyph = MultiLine(line_width=edge_width,
 graph_shadow = from_networkx(G, locations)
 shadow_width = edge_width*1.5
 graph_shadow.edge_renderer.glyph = MultiLine(line_width=shadow_width,
-                                             line_color="black")
+                                             line_color="gray")
 
 # Green hover for both nodes and edges
 hover_color = '#abdda4'
@@ -401,12 +422,30 @@ slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
 slider.on_change('value', update_colors)
 
 # Play button to move the slider for the pollution timeseries
-button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
-button.on_click(animate)
+play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
+play_button.on_click(animate)
+
+# Dropdown menu to highlight a particular node
+node_highlight_dropdown = Dropdown(label="Highlight Node",
+                                   css_classes=['green_button'],
+                                   menu=list(G.nodes()))
+node_highlight_dropdown.on_change('value', update_node_highlight)
+node_highlight_dropdown.value = None
+
+# Dropdown menu to highlight a node type
+node_type_dropdown = Dropdown(label="Highlight Node Type",
+                                    css_classes=['purple_button'],
+                                    menu=['None',
+                                          'Reservoir',
+                                          'Tank',
+                                          'Junction'])
+node_type_dropdown.on_change('value', update_node_highlight)
+node_type_dropdown.value = None
 
 # Dropdown menu to choose pollution start location
-pollution_location_dropdown = Dropdown(label="Pollution Injection Location",
-                                       button_type="danger", menu=scenarios)
+pollution_location_dropdown = Dropdown(label="Pollution Injection Node",
+                                       css_classes=['blue_button'],
+                                       menu=scenarios)
 pollution_location_dropdown.on_change('value', update_colors)
 pollution_location_dropdown.value = scenarios[0]
 
@@ -422,21 +461,29 @@ demand_weight_slider.value = node_demand_weighting
 
 # Speed selection dropdown widget
 # Animation speeds and speed drop down entries. 'Speeds' are in ms per frame
-speed_menu = ['slow', 'medium', 'fast']
+speed_menu = ['Slow', 'Medium', 'Fast']
 speeds = dict(zip(speed_menu, [250, 100, 30]))
 speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
                           menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
 # Starting animation speed
-animation_speed = speeds['medium']
+animation_speed = speeds['Medium']
 
 # Create the layout for the graph and widgets
-layout = column(
-    row(row(node_size_slider, demand_weight_slider),
-        pollution_location_dropdown, height=50, sizing_mode="stretch_width"),
-    row(plot, pollution_history_plot),
-    row(button, speed_dropdown, slider, height=50,
-        sizing_mode="stretch_width"),
+layout = row(
+    column(
+        node_highlight_dropdown,
+        node_type_dropdown,
+        pollution_location_dropdown,
+        node_size_slider,
+        demand_weight_slider,
+        play_button,
+        speed_dropdown,
+        slider,
+        width=200, sizing_mode="stretch_height"
+    ),
+    column(plot),
+    column(pollution_history_plot),
     sizing_mode="stretch_both"
 )
 
