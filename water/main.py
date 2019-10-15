@@ -68,7 +68,7 @@ def get_node_outlines(injection, node_highlight=None):
     """Get the color and width for each node in the graph These should be the
     same in every case except for the pollution start node and a chosen node to highlight if provided"""
     # Color of injection node
-    injection_color = "#34c3eb"  # Light blue
+    injection_color = "#34c3eb"  # Light blue (same color used by injection button, update in CSS too on change)
     # Create a default dictionary for node types, any node with a type not in
     # the dictionary gets the default color
     colors = defaultdict(lambda: "magenta")
@@ -86,7 +86,7 @@ def get_node_outlines(injection, node_highlight=None):
             outline_colors.append(injection_color)
             outline_widths.append(3)
         elif node == node_highlight:
-            outline_colors.append("#07db1c")  # Bright green
+            outline_colors.append("#07db1c")  # Bright green (same color used by highlight button, update in CSS too on change)
             outline_widths.append(3)
         else:
             # Otherwise color based on the node type

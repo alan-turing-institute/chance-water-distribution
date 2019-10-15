@@ -5,13 +5,13 @@
 }
 
 .blue_button button.bk.bk-btn.bk-btn-default {
-    background-color: #34c3eb;
+    background-color: #34c3eb; /*  Make sure to update in Python code so that higlight is same color as button  */
     border-color: #34c3eb;
     color: white;
 }
 
 .green_button button.bk.bk-btn.bk-btn-default {
-    background-color: #07db1c;
+    background-color: #07db1c; /*  Make sure to update in Python code so that higlight is same color as button  */
     border-color: #07db1c;
     color: white;
 }
