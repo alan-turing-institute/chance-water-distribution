@@ -316,7 +316,15 @@ color_bar = ColorBar(color_mapper=color_mapper['transform'],
 plot.add_layout(color_bar, 'right')
 
 # Create edges
-graph.edge_renderer.glyph = MultiLine(line_width=2.0, line_color=color_mapper)
+edge_width = 3.0
+graph.edge_renderer.glyph = MultiLine(line_width=edge_width,
+                                      line_color=color_mapper)
+
+# Create 'shadow' of the network edges so that they stand out against the map
+graph_shadow = from_networkx(G, locations)
+shadow_width = edge_width*1.5
+graph_shadow.edge_renderer.glyph = MultiLine(line_width=shadow_width,
+                                             line_color="black")
 
 # Green hover for both nodes and edges
 hover_color = '#abdda4'
@@ -324,12 +332,14 @@ graph.node_renderer.hover_glyph = Circle(size="size", fill_color=hover_color,
                                          line_color="line_color",
                                          line_width="line_width")
 graph.edge_renderer.hover_glyph = MultiLine(line_color=hover_color,
-                                            line_width=1)
+                                            line_width=edge_width)
 
 # When we hover over nodes, highlight adjacent edges too
 graph.selection_policy = NodesAndLinkedEdges()
 graph.inspection_policy = NodesAndLinkedEdges()
 
+# Add the network to plot
+plot.renderers.append(graph_shadow)
 plot.renderers.append(graph)
 
 # Show node names and type (e.g. junction, tank) on hover
