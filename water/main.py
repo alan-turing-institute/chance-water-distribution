@@ -400,14 +400,14 @@ play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
 # Dropdown menu to highlight a particular node
-node_highlight_dropdown = Dropdown(label="Highlight node",
+node_highlight_dropdown = Dropdown(label="Highlight Node",
                                    css_classes=['green_button'],
                                    menu=list(G.nodes()))
 node_highlight_dropdown.on_change('value', update_node_highlight)
 node_highlight_dropdown.value = None
 
 # Dropdown menu to highlight a node type
-node_type_dropdown = Dropdown(label="Highlight node type",
+node_type_dropdown = Dropdown(label="Highlight Node Type",
                                     css_classes=['purple_button'],
                                     menu=['Reservoir',
                                           'Tank',
