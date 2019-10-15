@@ -389,9 +389,9 @@ pollution_history_plot = figure(
     y_range=Range1d(0, max(pollution_history.values))
     )
 pollution_history_plot.line('time', 'pollution_value',
-                            source=pollution_history_source)
+                            source=pollution_history_source, line_width=2.0)
 timestep_span = Span(location=0, dimension='height', line_dash='dashed',
-                     line_width=1.5)
+                     line_width=2.0)
 pollution_history_plot.add_layout(timestep_span)
 
 # Slider to change the timestep of the pollution data visualised
