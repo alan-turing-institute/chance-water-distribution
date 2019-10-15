@@ -64,11 +64,13 @@ def get_node_sizes(base_node_size, node_demand_weighting):
             + base_node_size for i in all_base_demands]
 
 
-def get_node_outlines(injection, node_highlight=None, node_type_highlight=None):
-    """Get the color and width for each node in the graph These should be the
-    same in every case except for the pollution start node and a chosen node to highlight if provided"""
-    # Color of injection node
-    injection_color = "#34c3eb"  # Light blue (same color used by injection button, update in CSS too on change)
+def get_node_outlines(injection, node_highlight=None, type_highlight=None):
+    """Get the color and width for each node in the graph.
+    These should be the same in every case except for the
+    pollution start node and a chosen node to highlight if provided"""
+    # Color of injection node (Light blue)
+    # (color used by injection button, update in CSS too on change)
+    injection_color = "#34c3eb"
     # Create a default dictionary for node types, any node with a type not in
     # the dictionary gets the default color
     colors = defaultdict(lambda: "magenta")
@@ -86,12 +88,14 @@ def get_node_outlines(injection, node_highlight=None, node_type_highlight=None):
             outline_colors.append(injection_color)
             outline_widths.append(3)
         elif node == node_highlight:
-            outline_colors.append("#07db1c")  # Bright green (same color used by highlight button, update in CSS too on change)
+            # Color selected node bright green
+            # (color used by highlight button, update in CSS too on change)
+            outline_colors.append("#07db1c")
             outline_widths.append(3)
         else:
             # Otherwise color based on the node type
             node_type = G.node[node]['type']
-            if node_type == node_type_highlight:
+            if node_type == type_highlight:
                 outline_colors.append('purple')
             else:
                 outline_colors.append(colors[node_type])
@@ -106,14 +110,15 @@ def update_colors(attrname, old, new):
     # Get injection node
     start_node = pollution_location_dropdown.value
     node_highlight = node_highlight_dropdown.value
-    node_type_highlight = node_type_dropdown.value
+    type_highlight = node_type_dropdown.value
     timestep = slider.value
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(pollution, start_node, timestep)
 
     # Set node outlines
     data = graph.node_renderer.data_source.data
-    data['line_color'], data['line_width'] = get_node_outlines(start_node, node_highlight, node_type_highlight)
+    lines = get_node_outlines(start_node, node_highlight, type_highlight)
+    data['line_color'], data['line_width'] = lines
 
     # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
@@ -135,8 +140,8 @@ def update_node_highlight(attrname, old, new):
     """Highlight a chosen node"""
     start_node = pollution_location_dropdown.value
     node_highlight = node_highlight_dropdown.value
-    node_type_highlight = node_type_dropdown.value
-    lines = get_node_outlines(start_node, node_highlight, node_type_highlight)
+    type_highlight = node_type_dropdown.value
+    lines = get_node_outlines(start_node, node_highlight, type_highlight)
     data['line_color'], data['line_width'] = lines
 
 
@@ -411,7 +416,7 @@ node_type_dropdown.on_change('value', update_node_highlight)
 node_type_dropdown.value = None
 
 # Dropdown menu to choose pollution start location
-pollution_location_dropdown = Dropdown(label="Pollution Start Node",
+pollution_location_dropdown = Dropdown(label="Pollution Injection Node",
                                        css_classes=['blue_button'],
                                        menu=scenarios)
 pollution_location_dropdown.on_change('value', update_colors)
