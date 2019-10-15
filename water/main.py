@@ -127,6 +127,8 @@ def update_colors(attrname, old, new):
     # Update pollution history plot
     pollution_history_source.data['time'] = pollution_history.index
     pollution_history_source.data['pollution_value'] = pollution_history.values
+    pollution_history_plot.y_range.update(start=0,
+                                          end=max(pollution_history.values))
     timestep_span.update(location=timestep)
 
 
