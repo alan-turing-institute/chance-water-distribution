@@ -64,7 +64,7 @@ def get_node_sizes(base_node_size, node_demand_weighting):
             + base_node_size for i in all_base_demands]
 
 
-def get_node_outlines(injection, node_highlight=None):
+def get_node_outlines(injection, node_highlight=None, node_type_highlight=None):
     """Get the color and width for each node in the graph These should be the
     same in every case except for the pollution start node and a chosen node to highlight if provided"""
     # Color of injection node
@@ -91,7 +91,10 @@ def get_node_outlines(injection, node_highlight=None):
         else:
             # Otherwise color based on the node type
             node_type = G.node[node]['type']
-            outline_colors.append(colors[node_type])
+            if node_type == node_type_highlight:
+                outline_colors.append('purple')
+            else:
+                outline_colors.append(colors[node_type])
             outline_widths.append(2)
 
     return outline_colors, outline_widths
@@ -103,14 +106,14 @@ def update_colors(attrname, old, new):
     # Get injection node
     start_node = pollution_location_dropdown.value
     node_highlight = node_highlight_dropdown.value
-    # node_type_highlight = node_type_dropdown.value
+    node_type_highlight = node_type_dropdown.value
     timestep = slider.value
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(pollution, start_node, timestep)
 
     # Set node outlines
     data = graph.node_renderer.data_source.data
-    data['line_color'], data['line_width'] = get_node_outlines(start_node, node_highlight)
+    data['line_color'], data['line_width'] = get_node_outlines(start_node, node_highlight, node_type_highlight)
 
     # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
@@ -132,8 +135,8 @@ def update_node_highlight(attrname, old, new):
     """Highlight a chosen node"""
     start_node = pollution_location_dropdown.value
     node_highlight = node_highlight_dropdown.value
-    # node_type_highlight = node_type_dropdown.value
-    lines = get_node_outlines(start_node, node_highlight)
+    node_type_highlight = node_type_dropdown.value
+    lines = get_node_outlines(start_node, node_highlight, node_type_highlight)
     data['line_color'], data['line_width'] = lines
 
 
@@ -401,9 +404,8 @@ node_highlight_dropdown.value = None
 # Dropdown menu to highlight a node type
 node_type_dropdown = Dropdown(label="Highlight node type",
                                     css_classes=['purple_button'],
-                                    menu=['Resevoir',
+                                    menu=['Reservoir',
                                           'Tank',
-                                          'Pump',
                                           'Junction'])
 node_type_dropdown.on_change('value', update_node_highlight)
 node_type_dropdown.value = None
