@@ -377,13 +377,17 @@ TOOLTIPS = [
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Pollution history plot
-pollution_history_plot = figure()
 pollution_history_source = ColumnDataSource(
     data=dict(time=[], pollution_value=[])
     )
 pollution_history = pollution[start_node]['J-10']
 pollution_history_source.data['time'] = pollution_history.index
 pollution_history_source.data['pollution_value'] = pollution_history.values
+
+pollution_history_plot = figure(
+    x_range=Range1d(0, pollution_history.index[-1]),
+    y_range=Range1d(0, max(pollution_history.values))
+    )
 pollution_history_plot.line('time', 'pollution_value',
                             source=pollution_history_source)
 timestep_span = Span(location=0, dimension='height', line_dash='dashed',
