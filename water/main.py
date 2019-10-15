@@ -127,7 +127,7 @@ def update_colors(attrname, old, new):
     # Update pollution history plot
     pollution_history_source.data['time'] = pollution_history.index
     pollution_history_source.data['pollution_value'] = pollution_history.values
-    timestep_span.location = timestep
+    timestep_span.update(location=timestep)
 
 
 def update_node_sizes(attrname, old, new):
