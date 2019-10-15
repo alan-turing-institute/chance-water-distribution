@@ -353,7 +353,7 @@ graph.edge_renderer.glyph = MultiLine(line_width=edge_width,
 graph_shadow = from_networkx(G, locations)
 shadow_width = edge_width*1.5
 graph_shadow.edge_renderer.glyph = MultiLine(line_width=shadow_width,
-                                             line_color="black")
+                                             line_color="gray")
 
 # Green hover for both nodes and edges
 hover_color = '#abdda4'
