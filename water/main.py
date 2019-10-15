@@ -7,10 +7,12 @@ from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
+from collections import defaultdict
 import colorcet as cc
 import datetime
 import numpy as np
 from os.path import dirname, join
+import pandas as pd
 import pickle
 from statistics import mean
 import wntr
@@ -24,17 +26,36 @@ BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
 
-def get_pollution_values(start_node, timestep):
-    """Get a pollution value for each node when the pollution started at a
-    particular node"""
-    try:
-        pollution_series = pollution[start_node].loc[timestep]
-        pollution_values = []
-        for node in G.nodes():
-            pollution_values.append(pollution_series[node])
-    except KeyError:  # If there is no pollution data for a particular timestep
-        pollution_values = len(G.nodes()) * [0.0]
-    return pollution_values
+def pollution_series(pollution, injection, timestep):
+    """
+    Produce a pandas series of the pollution for each node for a given
+    injection site and timestep.
+
+    If the timestep has no pollution data a series of zeroes is returned.
+
+    Args:
+        pollution (dict): A dictionary of the pollution dynamics as produced by
+            wntr. The keys are injection sites and the values are a Pandas
+            Dataframe describing the pollution dynamics.  The columns of the
+            Dataframe are the node labels and the index is a set of timesteps.
+        injection (str): The node label of the injection site.
+        timestep (int): The time step.
+
+    Returns:
+        Pandas.Series: The pollution value at each node for the given timestep
+            and injection location.
+    """
+    # Get pollution dataframe for the given injection site
+    dataframe = pollution[injection]
+    # Extract the pollution series at the given timestep
+    if timestep in dataframe.index:
+        series = dataframe.loc[timestep]
+    else:
+        # Construct a series of zero pollution
+        series = pd.Series(dict(zip(pollution[injection].columns,
+                                    [0]*G.number_of_nodes())))
+
+    return series
 
 
 def get_node_sizes(base_node_size, node_demand_weighting):
@@ -43,32 +64,67 @@ def get_node_sizes(base_node_size, node_demand_weighting):
             + base_node_size for i in all_base_demands]
 
 
-def get_node_outlines(start_node):
+def get_node_outlines(injection):
     """Get the color and width for each node in the graph These should be the
     same in every case except for the pollution start node"""
+    # Color of injection node
+    injection_color = "#34c3eb"
+    # Create a default dictionary for node types, any node with a type not in
+    # the dictionary gets the default color
+    colors = defaultdict(lambda: "magenta")
+    colors.update({
+        'Junction': 'gray',
+        'Reservoir': 'orange',
+        'Tank': 'green'
+        })
+
     outline_colors = []
     outline_widths = []
     for node in G.nodes():
-        if node == start_node:
-            outline_colors.append("#34c3eb")
+        if node == injection:
+            # Color injection node the injection color regardless of its type
+            outline_colors.append(injection_color)
             outline_widths.append(3)
         else:
-            outline_colors.append("black")
-            outline_widths.append(1)
+            # Otherwise color based on the node type
+            node_type = G.node[node]['type']
+            outline_colors.append(colors[node_type])
+            outline_widths.append(2)
+
     return outline_colors, outline_widths
 
 
 def update_colors(attrname, old, new):
-    """Update pollution data used for node colors"""
+    """Update the appearance of the pollution dynamics network, including node
+    and edge colors"""
+    # Get injection node
     start_node = pollution_location_dropdown.value
+    # Get timestep
+    timestep = slider.value
+    # Get pollution for each node for the given injection site and timestep
+    series = pollution_series(pollution, start_node, timestep)
+    # Get pollution history for J-10 for the given injection site
+    pollution_history = pollution[start_node]['J-10']
+
+    # Set node outlines
     data = graph.node_renderer.data_source.data
     data['line_color'], data['line_width'] = get_node_outlines(start_node)
-    timestep = slider.value
+
+    # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
                   + str(datetime.timedelta(seconds=int(timestep))))
-    pollution_values = get_pollution_values(start_node, timestep)
-    data['colors'] = pollution_values
-    pollution_history = pollution[start_node]['J-10']
+    # Update node colours
+    data['colors'] = list(series)
+
+    # Update edge colours
+    edge_values = []
+    for node1, node2 in G.edges():
+        node1_pollution = series[node1]
+        node2_pollution = series[node2]
+        edge_values.append((node1_pollution + node2_pollution) / 2.)
+    graph.edge_renderer.data_source.data['colors'] = edge_values
+
+    # Update pollution history plot
     pollution_history_source.data['time'] = pollution_history.index
     pollution_history_source.data['pollution_value'] = pollution_history.values
     timestep_span.location = timestep
@@ -245,7 +301,7 @@ G, locations, all_base_demands = load_water_network()
  max_pol, min_pol) = load_pollution_dynamics()
 
 # Get pollution values for time zero
-pollution_values = get_pollution_values(start_node, 0)
+pollution_values = list(pollution_series(pollution, start_node, 0))
 
 # Create figure object
 x_bounds, y_bounds = plot_bounds(locations)
@@ -282,7 +338,15 @@ color_bar = ColorBar(color_mapper=color_mapper['transform'],
 plot.add_layout(color_bar, 'right')
 
 # Create edges
-graph.edge_renderer.glyph = MultiLine(line_alpha=1.6, line_width=0.5)
+edge_width = 3.0
+graph.edge_renderer.glyph = MultiLine(line_width=edge_width,
+                                      line_color=color_mapper)
+
+# Create 'shadow' of the network edges so that they stand out against the map
+graph_shadow = from_networkx(G, locations)
+shadow_width = edge_width*1.5
+graph_shadow.edge_renderer.glyph = MultiLine(line_width=shadow_width,
+                                             line_color="black")
 
 # Green hover for both nodes and edges
 hover_color = '#abdda4'
@@ -290,12 +354,14 @@ graph.node_renderer.hover_glyph = Circle(size="size", fill_color=hover_color,
                                          line_color="line_color",
                                          line_width="line_width")
 graph.edge_renderer.hover_glyph = MultiLine(line_color=hover_color,
-                                            line_width=1)
+                                            line_width=edge_width)
 
 # When we hover over nodes, highlight adjacent edges too
 graph.selection_policy = NodesAndLinkedEdges()
 graph.inspection_policy = NodesAndLinkedEdges()
 
+# Add the network to plot
+plot.renderers.append(graph_shadow)
 plot.renderers.append(graph)
 
 # Show node names and type (e.g. junction, tank) on hover
