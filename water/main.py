@@ -2,7 +2,8 @@ from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider,
-                          Button, ColorBar, LogTicker, Title)
+                          Button, ColorBar, LogTicker, Title, TapTool,
+                          BoxSelectTool)
 from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -75,9 +76,9 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
     # the dictionary gets the default color
     colors = defaultdict(lambda: "magenta")
     colors.update({
-        'Junction': 'gray',
-        'Reservoir': 'orange',
-        'Tank': 'green'
+        'Junction': ('gray', 0.5),
+        'Reservoir': ('orange', 2),
+        'Tank': ('green', 2),
         })
 
     outline_colors = []
@@ -97,9 +98,11 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
             node_type = G.node[node]['type']
             if node_type == type_highlight:
                 outline_colors.append('purple')
+                outline_widths.append(2)
             else:
-                outline_colors.append(colors[node_type])
-            outline_widths.append(2)
+                outline_colors.append(colors[node_type][0])
+                outline_widths.append(colors[node_type][1])
+
 
     return outline_colors, outline_widths
 
@@ -389,7 +392,7 @@ TOOLTIPS = [
     ("Base Demand", "@demand"),
     ("Pollution Level", "@colors")
 ]
-plot.add_tools(HoverTool(tooltips=TOOLTIPS))
+plot.add_tools(HoverTool(tooltips=TOOLTIPS), TapTool(), BoxSelectTool())
 
 # Slider to change the timestep of the pollution data visualised
 slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
