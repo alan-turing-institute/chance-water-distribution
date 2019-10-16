@@ -34,7 +34,7 @@ The data for contamination spread scenarios is pre-computed and coupled with inf
 Bokeh App
 -------
 
-*Tested with Python 3.6*
+*Tested with Python 3.6 and 3.7*
 
 1. Clone the repository
 2. Install the requirements in `requirements.txt`
