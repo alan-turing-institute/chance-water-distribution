@@ -1,10 +1,11 @@
 from bokeh.io import curdoc
+from bokeh.events import Tap
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider,
                           Button, ColorBar, LogTicker, Title, TapTool,
                           BoxSelectTool)
-from bokeh.models.widgets import Dropdown
+from bokeh.models.widgets import Dropdown, MultiSelect
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -72,7 +73,7 @@ def get_node_sizes(base_node_size, node_demand_weighting):
             + base_node_size for i in all_base_demands]
 
 
-def get_node_outlines(injection, node_highlight=None, type_highlight=None):
+def get_node_outlines(injection, node_highlight=None, type_highlight=None, highlight_indices=[]):
     """Get the color and width for each node in the graph.
     These should be the same in every case except for the
     pollution start node and a chosen node to highlight if provided"""
@@ -87,11 +88,12 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
 
     outline_colors = []
     outline_widths = []
+    node_index_counter = 0
     for node in G.nodes():
         if node == injection:
             outline_colors.append(injection_color)
             outline_widths.append(3)
-        elif node == node_highlight:
+        elif node == node_highlight or node_index_counter in highlight_indices:
             outline_colors.append(node_selection_color)
             outline_widths.append(3)
         else:
@@ -102,6 +104,7 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
             else:
                 outline_colors.append(colors[node_type][0])
                 outline_widths.append(colors[node_type][1])
+        node_index_counter += 1
 
 
     return outline_colors, outline_widths
@@ -121,14 +124,14 @@ def update_colors(attrname, old, new):
     # Set node outlines
     data = graph.node_renderer.data_source.data
     lines = get_node_outlines(start_node, node_highlight, type_highlight)
-    data['line_color'], data['line_width'] = lines
+    source.data['line_color'], source.data['line_width'] = lines
 
     # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
                   + str(datetime.timedelta(seconds=int(timestep))))
 
     # Update node colours
-    data['colors'] = list(series)
+    source.data['colors'] = list(series)
 
     # Update edge colours
     edge_values = []
@@ -145,12 +148,12 @@ def update_node_highlight(attrname, old, new):
     node_highlight = node_highlight_dropdown.value
     type_highlight = node_type_dropdown.value
     lines = get_node_outlines(start_node, node_highlight, type_highlight)
-    data['line_color'], data['line_width'] = lines
+    source.data['line_color'], source.data['line_width'] = lines
 
 
 def update_node_sizes(attrname, old, new):
     """Update the sizes of the nodes in the graph"""
-    graph.node_renderer.data_source.data['size'] = get_node_sizes(
+    source.data['size'] = get_node_sizes(
         node_size_slider.value, demand_weight_slider.value)
 
 
@@ -188,6 +191,14 @@ def update_speed(attr, old, new):
         curdoc().remove_periodic_callback(callback_id)
         callback_id = curdoc().add_periodic_callback(animate_update_colors,
                                                      animation_speed)
+
+
+def node_click(event):
+    nodes_clicked_ints = source.selected.indices
+    start_node = pollution_location_dropdown.value
+    print(nodes_clicked_ints)
+    lines = get_node_outlines(start_node, highlight_indices=nodes_clicked_ints)
+    source.data['line_color'], source.data['line_width'] = lines
 
 
 def load_water_network():
@@ -342,10 +353,10 @@ color_mapper = log_cmap('colors', cc.CET_L18, min_pol, max_pol)
 
 # Create nodes, set the node colors by pollution level and size by base demand
 # Node outline color and thickness is different for the pollution start node
-data = graph.node_renderer.data_source.data
-data['colors'] = pollution_values
-data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
-data['line_color'], data['line_width'] = get_node_outlines(start_node)
+source = graph.node_renderer.data_source
+source.data['colors'] = pollution_values
+source.data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
+source.data['line_color'], source.data['line_width'] = get_node_outlines(start_node)
 graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
                                    line_color="line_color",
                                    line_width="line_width")
@@ -393,6 +404,10 @@ TOOLTIPS = [
     ("Pollution Level", "@colors")
 ]
 plot.add_tools(HoverTool(tooltips=TOOLTIPS), TapTool(), BoxSelectTool())
+
+# TapTool to select a node
+taptool = plot.select(type=TapTool)
+plot.on_event(Tap, node_click)
 
 # Slider to change the timestep of the pollution data visualised
 slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
