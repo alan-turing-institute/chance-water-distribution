@@ -26,6 +26,13 @@ node_demand_weighting = 15
 BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
+# Color of injection node
+# (colors also used by buttons; update in CSS too on change)
+injection_color = "#34c3eb"  # Light blue
+# Color of selected node
+node_selection_color = "#07db1c"  # Bright green
+# Color of highlighted node type
+node_type_highlight_color = 'purple'
 
 def pollution_series(pollution, injection, timestep):
     """
@@ -69,14 +76,11 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
     """Get the color and width for each node in the graph.
     These should be the same in every case except for the
     pollution start node and a chosen node to highlight if provided"""
-    # Color of injection node (Light blue)
-    # (color used by injection button, update in CSS too on change)
-    injection_color = "#34c3eb"
     # Create a default dictionary for node types, any node with a type not in
     # the dictionary gets the default color
     colors = defaultdict(lambda: "magenta")
     colors.update({
-        'Junction': ('gray', 0.5),
+        'Junction': ('gray', 1),
         'Reservoir': ('orange', 2),
         'Tank': ('green', 2),
         })
@@ -85,19 +89,15 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
     outline_widths = []
     for node in G.nodes():
         if node == injection:
-            # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(3)
         elif node == node_highlight:
-            # Color selected node bright green
-            # (color used by highlight button, update in CSS too on change)
-            outline_colors.append("#07db1c")
+            outline_colors.append(node_selection_color)
             outline_widths.append(3)
         else:
-            # Otherwise color based on the node type
             node_type = G.node[node]['type']
             if node_type == type_highlight:
-                outline_colors.append('purple')
+                outline_colors.append(node_type_highlight_color)
                 outline_widths.append(2)
             else:
                 outline_colors.append(colors[node_type][0])
