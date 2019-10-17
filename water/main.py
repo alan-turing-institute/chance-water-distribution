@@ -196,7 +196,6 @@ def update_speed(attr, old, new):
 def node_click(event):
     nodes_clicked_ints = source.selected.indices
     start_node = pollution_location_dropdown.value
-    print(nodes_clicked_ints)
     lines = get_node_outlines(start_node, highlight_indices=nodes_clicked_ints)
     source.data['line_color'], source.data['line_width'] = lines
 
