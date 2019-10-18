@@ -3,8 +3,7 @@ from bokeh.events import Tap
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider,
-                          Button, ColorBar, LogTicker, Title, TapTool,
-                          BoxSelectTool)
+                          Button, ColorBar, LogTicker, Title, TapTool)
 from bokeh.models.widgets import Dropdown, MultiSelect
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -27,13 +26,18 @@ node_demand_weighting = 15
 BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
+# Colors below also used by buttons; update in CSS too on change
 # Color of injection node
-# (colors also used by buttons; update in CSS too on change)
 injection_color = "#34c3eb"  # Light blue
+
 # Color of selected node
 node_selection_color = "#07db1c"  # Bright green
+
 # Color of highlighted node type
 node_type_highlight_color = 'purple'
+
+# List of clicked node indices
+nodes_clicked_ints = []
 
 def pollution_series(pollution, injection, timestep):
     """
@@ -73,7 +77,7 @@ def get_node_sizes(base_node_size, node_demand_weighting):
             + base_node_size for i in all_base_demands]
 
 
-def get_node_outlines(injection, node_highlight=None, type_highlight=None, highlight_indices=[]):
+def get_node_outlines(injection, node_highlight=None, type_highlight=None):
     """Get the color and width for each node in the graph.
     These should be the same in every case except for the
     pollution start node and a chosen node to highlight if provided"""
@@ -93,7 +97,7 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None, highl
         if node == injection:
             outline_colors.append(injection_color)
             outline_widths.append(3)
-        elif node == node_highlight or node_index_counter in highlight_indices:
+        elif node == node_highlight or node_index_counter in nodes_clicked_ints:
             outline_colors.append(node_selection_color)
             outline_widths.append(3)
         else:
@@ -194,9 +198,11 @@ def update_speed(attr, old, new):
 
 
 def node_click(event):
+    """Highlight the clicked node and set as pollution start if data exists"""
+    global nodes_clicked_ints
     nodes_clicked_ints = source.selected.indices
     start_node = pollution_location_dropdown.value
-    lines = get_node_outlines(start_node, highlight_indices=nodes_clicked_ints)
+    lines = get_node_outlines(start_node)
     source.data['line_color'], source.data['line_width'] = lines
 
 
@@ -402,7 +408,7 @@ TOOLTIPS = [
     ("Base Demand", "@demand"),
     ("Pollution Level", "@colors")
 ]
-plot.add_tools(HoverTool(tooltips=TOOLTIPS), TapTool(), BoxSelectTool())
+plot.add_tools(HoverTool(tooltips=TOOLTIPS), TapTool())
 
 # TapTool to select a node
 taptool = plot.select(type=TapTool)
