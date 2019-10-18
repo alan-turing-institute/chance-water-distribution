@@ -394,6 +394,9 @@ source.data['line_color'], source.data['line_width'] = get_node_outlines(start_n
 graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
                                    line_color="line_color",
                                    line_width="line_width")
+graph.node_renderer.nonselection_glyph = Circle(size="size", fill_color=color_mapper,
+                                   line_color="line_color",
+                                   line_width="line_width")
 
 # Add color bar as legend
 color_bar = ColorBar(color_mapper=color_mapper['transform'],
