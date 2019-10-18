@@ -39,6 +39,10 @@ node_type_highlight_color = 'purple'
 # List of clicked node indices
 nodes_clicked_ints = []
 
+# Start node selected by pollution dropdown, to check against when changed
+prior_start_node = None
+
+
 def pollution_series(pollution, injection, timestep):
     """
     Produce a pandas series of the pollution for each node for a given
@@ -114,11 +118,24 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
     return outline_colors, outline_widths
 
 
-def update_colors(attrname, old, new):
+def get_injection_node():
+    global prior_start_node
+    start_node = None
+    if pollution_location_dropdown.value == prior_start_node:
+        for index in nodes_clicked_ints:  # Override with a clicked node
+            for node, data in dict(G.nodes()).items():
+                if data['index'] == index:
+                    if node in scenarios:
+                        start_node = node
+    if pollution_location_dropdown.value != prior_start_node or not start_node:  # if the dropdown value has changed
+        start_node = pollution_location_dropdown.value  # by default, use dropdown
+        prior_start_node = pollution_location_dropdown.value
+    return start_node
+
+
+def perform_color_update(start_node):
     """Update the appearance of the pollution dynamics network, including node
     and edge colors"""
-    # Get injection node
-    start_node = pollution_location_dropdown.value
     node_highlight = node_highlight_dropdown.value
     type_highlight = node_type_dropdown.value
     timestep = slider.value
@@ -146,9 +163,25 @@ def update_colors(attrname, old, new):
     graph.edge_renderer.data_source.data['colors'] = edge_values
 
 
+def update_colors(attrname, old, new):
+    """Update the appearance of the pollution dynamics network, including node
+    and edge colors when sliders and dropdowns used"""
+    # Get injection node
+    start_node = get_injection_node()
+    perform_color_update(start_node)
+
+
+def node_click(event):
+    """Highlight the clicked node and set as pollution start if data exists"""
+    global nodes_clicked_ints
+    nodes_clicked_ints = source.selected.indices
+    start_node = get_injection_node()
+    perform_color_update(start_node)
+
+
 def update_node_highlight(attrname, old, new):
     """Highlight a chosen node"""
-    start_node = pollution_location_dropdown.value
+    start_node = get_injection_node()
     node_highlight = node_highlight_dropdown.value
     type_highlight = node_type_dropdown.value
     lines = get_node_outlines(start_node, node_highlight, type_highlight)
@@ -197,15 +230,6 @@ def update_speed(attr, old, new):
                                                      animation_speed)
 
 
-def node_click(event):
-    """Highlight the clicked node and set as pollution start if data exists"""
-    global nodes_clicked_ints
-    nodes_clicked_ints = source.selected.indices
-    start_node = pollution_location_dropdown.value
-    lines = get_node_outlines(start_node)
-    source.data['line_color'], source.data['line_width'] = lines
-
-
 def load_water_network():
     # load .inp file
     filename = join(dirname(__file__), 'data',
@@ -222,6 +246,7 @@ def load_water_network():
     # Also add the names of connected nodes and edge names
     # Also get a list of the base demand for each node
     all_base_demands = []
+    node_index = 0
     for node in G.nodes():
         G.node[node]['name'] = node
         try:
@@ -254,6 +279,8 @@ def load_water_network():
                 connected_str = connected_str + pipe + " "
             i += 1
         G.node[node]['connected'] = connected_str
+        G.node[node]['index'] = node_index
+        node_index += 1
 
     # Normalise base demands
     # This global variable list is used for node resizing and the demand data
@@ -273,6 +300,7 @@ def load_water_network():
 
 
 def load_pollution_dynamics():
+    global prior_start_node
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
     filename = join(dirname(__file__), 'data',
@@ -295,6 +323,7 @@ def load_pollution_dynamics():
 
     # Choose a default node for pollution injection
     start_node = scenarios[0]
+    prior_start_node = scenarios[0]
 
     # Determine the step numbers for the beginning and end of the pollution
     # data. This assumes all pollution scenarios are identical in time to the
