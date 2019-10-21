@@ -7,7 +7,7 @@ from statistics import mean
 
 def load_water_network():
     # load .inp file
-    filename = join(dirname(__file__), 'data',
+    filename = join(dirname(__file__), '../data',
                     'kentucky_water_distribution_networks/ky2.inp')
 
     # Create water network
@@ -74,7 +74,7 @@ def load_water_network():
 def load_pollution_dynamics():
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
-    filename = join(dirname(__file__), 'data',
+    filename = join(dirname(__file__), '../data',
                     'kentucky_water_distribution_networks/Ky2.pkl')
     with open(filename, 'rb') as input_file:
         pollution = pickle.load(input_file)
