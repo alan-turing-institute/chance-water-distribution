@@ -125,7 +125,7 @@ def get_injection_node():
     if pollution_location_dropdown.value == prior_start_node:
         for index in nodes_clicked_ints:
             for node, data in dict(G.nodes()).items():
-                if data['index'] == index:
+                if data['node_index'] == index:
                     if node in scenarios:
                         start_node = node
                         pollution_location_dropdown.value = node
@@ -280,7 +280,7 @@ def load_water_network():
                 connected_str = connected_str + pipe + " "
             i += 1
         G.node[node]['connected'] = connected_str
-        G.node[node]['index'] = node_index
+        G.node[node]['node_index'] = node_index
         node_index += 1
 
     # Normalise base demands
