@@ -127,6 +127,7 @@ def get_injection_node():
                 if data['index'] == index:
                     if node in scenarios:
                         start_node = node
+                        pollution_location_dropdown.value = node
     if pollution_location_dropdown.value != prior_start_node or not start_node:  # if the dropdown value has changed
         start_node = pollution_location_dropdown.value  # by default, use dropdown
         prior_start_node = pollution_location_dropdown.value
