@@ -22,13 +22,13 @@ def load_water_network():
     # Also get a list of the base demand for each node
     all_base_demands = []
     for node in G.nodes():
-        G.node[node]['name'] = node
+        G.nodes[node]['name'] = node
         try:
-            G.node[node]['elevation'] = (
+            G.nodes[node]['elevation'] = (
                 wn.query_node_attribute('elevation')[node]
                 )
         except KeyError:
-            G.node[node]['elevation'] = 'N/A'
+            G.nodes[node]['elevation'] = 'N/A'
         try:
             base_demands = []
             # TODO: For some reason this is a list, but in Ky2 data there is
@@ -36,12 +36,12 @@ def load_water_network():
             for timeseries in wn.get_node(node).demand_timeseries_list:
                 base_demands.append(timeseries.base_value)
             base_demand = mean(base_demands)
-            G.node[node]['demand'] = base_demand
+            G.nodes[node]['demand'] = base_demand
             all_base_demands.append(base_demand)
         except AttributeError:
             # Nodes with no demand will not resize from the base_node_size
             all_base_demands.append(0.0)
-            G.node[node]['demand'] = "N/A"
+            G.nodes[node]['demand'] = "N/A"
         pipes = dict(G.adj[node])
         connected_str = ""
         i = 0
@@ -52,13 +52,13 @@ def load_water_network():
             for pipe, info in pipe_info.items():
                 connected_str = connected_str + pipe + " "
             i += 1
-        G.node[node]['connected'] = connected_str
+        G.nodes[node]['connected'] = connected_str
 
     # Normalise base demands
     # This global variable list is used for node resizing and the demand data
     # is also displayed in the tooltip
-    all_base_demands = [float(i) / max(all_base_demands)
-                        for i in all_base_demands]
+    all_base_demands = np.array([float(i) / max(all_base_demands)
+                                 for i in all_base_demands])
 
     # Create plottable coordinates for each network node
     locations = {}

@@ -90,7 +90,7 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
             outline_widths.append(3)
         else:
             # Otherwise color based on the node type
-            node_type = G.node[node]['type']
+            node_type = G.nodes[node]['type']
             if node_type == type_highlight:
                 outline_colors.append('purple')
             else:
