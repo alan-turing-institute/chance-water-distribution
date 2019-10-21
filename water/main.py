@@ -14,8 +14,6 @@ from load_data import load_water_network, load_pollution_dynamics
 import pandas as pd
 
 callback_id = None
-base_node_size = 8
-node_demand_weighting = 15
 
 # Labels for the play/pause button in paused and playing states respectively
 BUTTON_LABEL_PAUSED = '► Start Pollution'
@@ -52,12 +50,6 @@ def pollution_series(pollution, injection, timestep):
                                     [0]*G.number_of_nodes())))
 
     return series
-
-
-def get_node_sizes(base_node_size, node_demand_weighting):
-    """Get a list of sizes to set all the nodes in the network by"""
-    return [(i * node_demand_weighting)
-            + base_node_size for i in all_base_demands]
 
 
 def get_node_outlines(injection, node_highlight=None, type_highlight=None):
@@ -141,10 +133,12 @@ def update_node_highlight(attrname, old, new):
     data['line_color'], data['line_width'] = lines
 
 
-def update_node_sizes(attrname, old, new):
-    """Update the sizes of the nodes in the graph"""
-    graph.node_renderer.data_source.data['size'] = get_node_sizes(
-        node_size_slider.value, demand_weight_slider.value)
+def update_node_size(attrname, old, new):
+    """Update the base size of the nodes in the graph"""
+    NODE_SCALING = 15
+    graph.node_renderer.data_source.data['size'] = (
+        new + all_base_demands*NODE_SCALING
+        )
 
 
 def animate_update_colors():
@@ -235,7 +229,7 @@ color_mapper = log_cmap('colors', cc.CET_L18, min_pol, max_pol)
 # Node outline color and thickness is different for the pollution start node
 data = graph.node_renderer.data_source.data
 data['colors'] = pollution_values
-data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
+data['size'] = 8.0 + all_base_demands*15.0
 data['line_color'], data['line_width'] = get_node_outlines(start_node)
 graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
                                    line_color="line_color",
@@ -318,14 +312,10 @@ pollution_location_dropdown.on_change('value', update_colors)
 pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to choose node size and demand weighting
-node_size_slider = Slider(start=1, end=20, value=base_node_size, step=1,
+initial_node_size = 8
+node_size_slider = Slider(start=1, end=20, value=initial_node_size, step=1,
                           title="Node Size")
-node_size_slider.on_change('value', update_node_sizes)
-node_size_slider.value = base_node_size
-demand_weight_slider = Slider(start=1, end=40, value=node_demand_weighting,
-                              step=1, title="Base Demand Weighting")
-demand_weight_slider.on_change('value', update_node_sizes)
-demand_weight_slider.value = node_demand_weighting
+node_size_slider.on_change('value', update_node_size)
 
 # Speed selection dropdown widget
 # Animation speeds and speed drop down entries. 'Speeds' are in ms per frame
@@ -344,7 +334,6 @@ layout = row(
         node_type_dropdown,
         pollution_location_dropdown,
         node_size_slider,
-        demand_weight_slider,
         play_button,
         speed_dropdown,
         slider,
