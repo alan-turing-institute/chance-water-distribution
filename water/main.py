@@ -1,8 +1,9 @@
 from bokeh.io import curdoc
+from bokeh.events import Tap
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider,
-                          Button, ColorBar, LogTicker, Title)
+                          Button, ColorBar, LogTicker, Title, TapTool)
 from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -24,6 +25,22 @@ node_demand_weighting = 15
 # Labels for the play/pause button in paused and playing states respectively
 BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
+
+# Colors below also used by buttons; update in CSS too on change
+# Color of injection node (Light blue)
+injection_color = "#34c3eb"
+
+# Color of selected node
+node_selection_color = "#07db1c"  # Bright green
+
+# Color of highlighted node type
+node_type_highlight_color = 'purple'
+
+# List of clicked node indices
+nodes_clicked_ints = []
+
+# Start node selected by pollution dropdown, to check against when changed
+prior_start_node = None
 
 
 def pollution_series(pollution, injection, timestep):
@@ -68,47 +85,57 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
     """Get the color and width for each node in the graph.
     These should be the same in every case except for the
     pollution start node and a chosen node to highlight if provided"""
-    # Color of injection node (Light blue)
-    # (color used by injection button, update in CSS too on change)
-    injection_color = "#34c3eb"
     # Create a default dictionary for node types, any node with a type not in
     # the dictionary gets the default color
     colors = defaultdict(lambda: "magenta")
     colors.update({
-        'Junction': 'gray',
-        'Reservoir': 'orange',
-        'Tank': 'green'
+        'Junction': ('gray', 1),
+        'Reservoir': ('orange', 2),
+        'Tank': ('green', 2),
         })
 
     outline_colors = []
     outline_widths = []
-    for node in G.nodes():
+    for index, node in enumerate(G.nodes()):
         if node == injection:
-            # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(3)
-        elif node == node_highlight:
-            # Color selected node bright green
-            # (color used by highlight button, update in CSS too on change)
-            outline_colors.append("#07db1c")
+        elif node == node_highlight or index in nodes_clicked_ints:
+            outline_colors.append(node_selection_color)
             outline_widths.append(3)
         else:
-            # Otherwise color based on the node type
-            node_type = G.node[node]['type']
+            node_type = G.nodes[node]['type']
             if node_type == type_highlight:
-                outline_colors.append('purple')
+                outline_colors.append(node_type_highlight_color)
+                outline_widths.append(2)
             else:
-                outline_colors.append(colors[node_type])
-            outline_widths.append(2)
+                outline_colors.append(colors[node_type][0])
+                outline_widths.append(colors[node_type][1])
 
     return outline_colors, outline_widths
 
 
-def update_colors(attrname, old, new):
+def get_injection_node():
+    """Get the name of the node to start pollution injection from.
+    Uses either the pollution_location_dropdown or the clicked node"""
+    global prior_start_node
+    start_node = None
+    if pollution_location_dropdown.value == prior_start_node:
+        for index in nodes_clicked_ints:
+            for node, data in dict(G.nodes()).items():
+                if data['node_index'] == index:
+                    if node in scenarios:
+                        start_node = node
+                        pollution_location_dropdown.value = node
+    if pollution_location_dropdown.value != prior_start_node or not start_node:
+        start_node = pollution_location_dropdown.value
+        prior_start_node = pollution_location_dropdown.value
+    return start_node
+
+
+def perform_color_update(start_node):
     """Update the appearance of the pollution dynamics network, including node
     and edge colors"""
-    # Get injection node
-    start_node = pollution_location_dropdown.value
     node_highlight = node_highlight_dropdown.value
     type_highlight = node_type_dropdown.value
     timestep = slider.value
@@ -116,16 +143,15 @@ def update_colors(attrname, old, new):
     series = pollution_series(pollution, start_node, timestep)
 
     # Set node outlines
-    data = graph.node_renderer.data_source.data
     lines = get_node_outlines(start_node, node_highlight, type_highlight)
-    data['line_color'], data['line_width'] = lines
+    source.data['line_color'], source.data['line_width'] = lines
 
     # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
                   + str(datetime.timedelta(seconds=int(timestep))))
 
     # Update node colours
-    data['colors'] = list(series)
+    source.data['colors'] = list(series)
 
     # Update edge colours
     edge_values = []
@@ -136,18 +162,34 @@ def update_colors(attrname, old, new):
     graph.edge_renderer.data_source.data['colors'] = edge_values
 
 
+def update_colors(attrname, old, new):
+    """Update the appearance of the pollution dynamics network, including node
+    and edge colors when sliders and dropdowns used"""
+    # Get injection node
+    start_node = get_injection_node()
+    perform_color_update(start_node)
+
+
+def node_click(event):
+    """Highlight the clicked node and set as pollution start if data exists"""
+    global nodes_clicked_ints
+    nodes_clicked_ints = source.selected.indices
+    start_node = get_injection_node()
+    perform_color_update(start_node)
+
+
 def update_node_highlight(attrname, old, new):
     """Highlight a chosen node"""
-    start_node = pollution_location_dropdown.value
+    start_node = get_injection_node()
     node_highlight = node_highlight_dropdown.value
     type_highlight = node_type_dropdown.value
     lines = get_node_outlines(start_node, node_highlight, type_highlight)
-    data['line_color'], data['line_width'] = lines
+    source.data['line_color'], source.data['line_width'] = lines
 
 
 def update_node_sizes(attrname, old, new):
     """Update the sizes of the nodes in the graph"""
-    graph.node_renderer.data_source.data['size'] = get_node_sizes(
+    source.data['size'] = get_node_sizes(
         node_size_slider.value, demand_weight_slider.value)
 
 
@@ -203,14 +245,15 @@ def load_water_network():
     # Also add the names of connected nodes and edge names
     # Also get a list of the base demand for each node
     all_base_demands = []
+    node_index = 0
     for node in G.nodes():
-        G.node[node]['name'] = node
+        G.nodes[node]['name'] = node
         try:
-            G.node[node]['elevation'] = (
+            G.nodes[node]['elevation'] = (
                 wn.query_node_attribute('elevation')[node]
                 )
         except KeyError:
-            G.node[node]['elevation'] = 'N/A'
+            G.nodes[node]['elevation'] = 'N/A'
         try:
             base_demands = []
             # TODO: For some reason this is a list, but in Ky2 data there is
@@ -218,12 +261,12 @@ def load_water_network():
             for timeseries in wn.get_node(node).demand_timeseries_list:
                 base_demands.append(timeseries.base_value)
             base_demand = mean(base_demands)
-            G.node[node]['demand'] = base_demand
+            G.nodes[node]['demand'] = base_demand
             all_base_demands.append(base_demand)
         except AttributeError:
             # Nodes with no demand will not resize from the base_node_size
             all_base_demands.append(0.0)
-            G.node[node]['demand'] = "N/A"
+            G.nodes[node]['demand'] = "N/A"
         pipes = dict(G.adj[node])
         connected_str = ""
         i = 0
@@ -234,7 +277,9 @@ def load_water_network():
             for pipe, info in pipe_info.items():
                 connected_str = connected_str + pipe + " "
             i += 1
-        G.node[node]['connected'] = connected_str
+        G.nodes[node]['connected'] = connected_str
+        G.nodes[node]['node_index'] = node_index
+        node_index += 1
 
     # Normalise base demands
     # This global variable list is used for node resizing and the demand data
@@ -254,6 +299,7 @@ def load_water_network():
 
 
 def load_pollution_dynamics():
+    global prior_start_node
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
     filename = join(dirname(__file__), 'data',
@@ -276,6 +322,7 @@ def load_pollution_dynamics():
 
     # Choose a default node for pollution injection
     start_node = scenarios[0]
+    prior_start_node = scenarios[0]
 
     # Determine the step numbers for the beginning and end of the pollution
     # data. This assumes all pollution scenarios are identical in time to the
@@ -339,13 +386,19 @@ color_mapper = log_cmap('colors', cc.CET_L18, min_pol, max_pol)
 
 # Create nodes, set the node colors by pollution level and size by base demand
 # Node outline color and thickness is different for the pollution start node
-data = graph.node_renderer.data_source.data
-data['colors'] = pollution_values
-data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
-data['line_color'], data['line_width'] = get_node_outlines(start_node)
-graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
+source = graph.node_renderer.data_source
+source.data['colors'] = pollution_values
+source.data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
+lines = get_node_outlines(start_node)
+source.data['line_color'], source.data['line_width'] = lines
+graph.node_renderer.glyph = Circle(size="size",
+                                   fill_color=color_mapper,
                                    line_color="line_color",
                                    line_width="line_width")
+graph.node_renderer.nonselection_glyph = Circle(size="size",
+                                                fill_color=color_mapper,
+                                                line_color="line_color",
+                                                line_width="line_width")
 
 # Add color bar as legend
 color_bar = ColorBar(color_mapper=color_mapper['transform'],
@@ -389,7 +442,11 @@ TOOLTIPS = [
     ("Base Demand", "@demand"),
     ("Pollution Level", "@colors")
 ]
-plot.add_tools(HoverTool(tooltips=TOOLTIPS))
+plot.add_tools(HoverTool(tooltips=TOOLTIPS), TapTool())
+
+# TapTool to select a node
+taptool = plot.select(type=TapTool)
+plot.on_event(Tap, node_click)
 
 # Slider to change the timestep of the pollution data visualised
 slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
