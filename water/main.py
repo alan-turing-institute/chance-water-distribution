@@ -10,7 +10,7 @@ from bokeh.transform import log_cmap
 from collections import defaultdict
 import colorcet as cc
 import datetime
-from load_data import load_water_network, load_pollution_dynamics
+from .load_data import load_water_network, load_pollution_dynamics
 import pandas as pd
 
 callback_id = None
