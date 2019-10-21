@@ -19,6 +19,9 @@ callback_id = None
 BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
+# Node scaling factor
+NODE_SCALING = 15
+
 
 def pollution_series(pollution, injection, timestep):
     """
@@ -155,7 +158,6 @@ def update_injection(attrname, old, new):
 def update_node_size(attrname, old, new):
     """Node size slider callback.
     Updates the base size of the nodes in the graph"""
-    NODE_SCALING = 15
     graph.node_renderer.data_source.data['size'] = (
         new + all_base_demands*NODE_SCALING
         )
@@ -247,10 +249,8 @@ color_mapper = log_cmap('colors', cc.CET_L18, min_pol, max_pol)
 
 # Create nodes, set the node colors by pollution level and size by base demand
 # Node outline color and thickness is different for the pollution start node
-data = graph.node_renderer.data_source.data
-data['colors'] = pollution_values
-data['size'] = 8.0 + all_base_demands*15.0
-data['line_color'], data['line_width'] = get_node_outlines(start_node)
+
+# Create node glyphs
 graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
                                    line_color="line_color",
                                    line_width="line_width")
@@ -333,6 +333,9 @@ pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to choose node size and demand weighting
 initial_node_size = 8
+graph.node_renderer.data_source.data['size'] = (
+    initial_node_size + all_base_demands*NODE_SCALING
+    )
 node_size_slider = Slider(start=1, end=20, value=initial_node_size, step=1,
                           title="Node Size")
 node_size_slider.on_change('value', update_node_size)
