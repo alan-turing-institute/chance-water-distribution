@@ -96,12 +96,11 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
 
     outline_colors = []
     outline_widths = []
-    counter = 0
-    for node in G.nodes():
+    for index, node in enumerate(G.nodes()):
         if node == injection:
             outline_colors.append(injection_color)
             outline_widths.append(3)
-        elif node == node_highlight or counter in nodes_clicked_ints:
+        elif node == node_highlight or index in nodes_clicked_ints:
             outline_colors.append(node_selection_color)
             outline_widths.append(3)
         else:
@@ -112,7 +111,6 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
             else:
                 outline_colors.append(colors[node_type][0])
                 outline_widths.append(colors[node_type][1])
-        counter += 1
 
     return outline_colors, outline_widths
 
