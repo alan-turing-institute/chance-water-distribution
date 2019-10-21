@@ -92,7 +92,7 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
     return outline_colors, outline_widths
 
 
-def update_colors(attrname, old, new):
+def update():
     """Update the appearance of the pollution dynamics network, including node
     and edge colors"""
     # Get injection node
@@ -125,16 +125,36 @@ def update_colors(attrname, old, new):
 
 
 def update_node_highlight(attrname, old, new):
-    """Highlight a chosen node"""
-    start_node = pollution_location_dropdown.value
-    node_highlight = node_highlight_dropdown.value
-    type_highlight = node_type_dropdown.value
-    lines = get_node_outlines(start_node, node_highlight, type_highlight)
-    data['line_color'], data['line_width'] = lines
+    """Highlight node drop down callback.
+    As node colours depend on many widget values, this callback simply calls
+    the update function."""
+    update()
+
+
+def update_node_type_highlight(attrname, old, new):
+    """Highlight node type drop down callback.
+    As node colours depend on many widget values, this callback simply calls
+    the update function."""
+    update()
+
+
+def update_slider(attrname, old, new):
+    """Time slider callback.
+    As node colours depend on many widget values, this callback simply calls
+    the update function."""
+    update()
+
+
+def update_injection(attrname, old, new):
+    """Pollution injection node drop down callback.
+    As node colours depend on many widget values, this callback simply calls
+    the update function."""
+    update()
 
 
 def update_node_size(attrname, old, new):
-    """Update the base size of the nodes in the graph"""
+    """Node size slider callback.
+    Updates the base size of the nodes in the graph"""
     NODE_SCALING = 15
     graph.node_renderer.data_source.data['size'] = (
         new + all_base_demands*NODE_SCALING
@@ -281,7 +301,7 @@ plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Slider to change the timestep of the pollution data visualised
 slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
-slider.on_change('value', update_colors)
+slider.on_change('value', update_slider)
 
 # Play button to move the slider for the pollution timeseries
 play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
@@ -301,14 +321,14 @@ node_type_dropdown = Dropdown(label="Highlight Node Type",
                                           'Reservoir',
                                           'Tank',
                                           'Junction'])
-node_type_dropdown.on_change('value', update_node_highlight)
+node_type_dropdown.on_change('value', update_node_type_highlight)
 node_type_dropdown.value = None
 
 # Dropdown menu to choose pollution start location
 pollution_location_dropdown = Dropdown(label="Pollution Injection Node",
                                        css_classes=['blue_button'],
                                        menu=scenarios)
-pollution_location_dropdown.on_change('value', update_colors)
+pollution_location_dropdown.on_change('value', update_injection)
 pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to choose node size and demand weighting
