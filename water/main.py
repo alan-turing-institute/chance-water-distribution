@@ -4,7 +4,7 @@ from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider,
                           Button, ColorBar, LogTicker, Title, TapTool)
-from bokeh.models.widgets import Dropdown, MultiSelect
+from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -27,8 +27,8 @@ BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
 # Colors below also used by buttons; update in CSS too on change
-# Color of injection node
-injection_color = "#34c3eb"  # Light blue
+# Color of injection node (Light blue)
+injection_color = "#34c3eb"
 
 # Color of selected node
 node_selection_color = "#07db1c"  # Bright green
@@ -96,12 +96,12 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
 
     outline_colors = []
     outline_widths = []
-    node_index_counter = 0
+    counter = 0
     for node in G.nodes():
         if node == injection:
             outline_colors.append(injection_color)
             outline_widths.append(3)
-        elif node == node_highlight or node_index_counter in nodes_clicked_ints:
+        elif node == node_highlight or counter in nodes_clicked_ints:
             outline_colors.append(node_selection_color)
             outline_widths.append(3)
         else:
@@ -112,24 +112,25 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
             else:
                 outline_colors.append(colors[node_type][0])
                 outline_widths.append(colors[node_type][1])
-        node_index_counter += 1
-
+        counter += 1
 
     return outline_colors, outline_widths
 
 
 def get_injection_node():
+    """Get the name of the node to start pollution injection from.
+    Uses either the pollution_location_dropdown or the clicked node"""
     global prior_start_node
     start_node = None
     if pollution_location_dropdown.value == prior_start_node:
-        for index in nodes_clicked_ints:  # Override with a clicked node
+        for index in nodes_clicked_ints:
             for node, data in dict(G.nodes()).items():
                 if data['index'] == index:
                     if node in scenarios:
                         start_node = node
                         pollution_location_dropdown.value = node
-    if pollution_location_dropdown.value != prior_start_node or not start_node:  # if the dropdown value has changed
-        start_node = pollution_location_dropdown.value  # by default, use dropdown
+    if pollution_location_dropdown.value != prior_start_node or not start_node:
+        start_node = pollution_location_dropdown.value
         prior_start_node = pollution_location_dropdown.value
     return start_node
 
@@ -144,7 +145,6 @@ def perform_color_update(start_node):
     series = pollution_series(pollution, start_node, timestep)
 
     # Set node outlines
-    data = graph.node_renderer.data_source.data
     lines = get_node_outlines(start_node, node_highlight, type_highlight)
     source.data['line_color'], source.data['line_width'] = lines
 
@@ -391,13 +391,16 @@ color_mapper = log_cmap('colors', cc.CET_L18, min_pol, max_pol)
 source = graph.node_renderer.data_source
 source.data['colors'] = pollution_values
 source.data['size'] = get_node_sizes(base_node_size, node_demand_weighting)
-source.data['line_color'], source.data['line_width'] = get_node_outlines(start_node)
-graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
+lines = get_node_outlines(start_node)
+source.data['line_color'], source.data['line_width'] = lines
+graph.node_renderer.glyph = Circle(size="size",
+                                   fill_color=color_mapper,
                                    line_color="line_color",
                                    line_width="line_width")
-graph.node_renderer.nonselection_glyph = Circle(size="size", fill_color=color_mapper,
-                                   line_color="line_color",
-                                   line_width="line_width")
+graph.node_renderer.nonselection_glyph = Circle(size="size",
+                                                fill_color=color_mapper,
+                                                line_color="line_color",
+                                                line_width="line_width")
 
 # Add color bar as legend
 color_bar = ColorBar(color_mapper=color_mapper['transform'],
