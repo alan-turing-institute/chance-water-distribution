@@ -105,7 +105,7 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
             outline_colors.append(node_selection_color)
             outline_widths.append(3)
         else:
-            node_type = G.node[node]['type']
+            node_type = G.nodes[node]['type']
             if node_type == type_highlight:
                 outline_colors.append(node_type_highlight_color)
                 outline_widths.append(2)
@@ -249,13 +249,13 @@ def load_water_network():
     all_base_demands = []
     node_index = 0
     for node in G.nodes():
-        G.node[node]['name'] = node
+        G.nodes[node]['name'] = node
         try:
-            G.node[node]['elevation'] = (
+            G.nodes[node]['elevation'] = (
                 wn.query_node_attribute('elevation')[node]
                 )
         except KeyError:
-            G.node[node]['elevation'] = 'N/A'
+            G.nodes[node]['elevation'] = 'N/A'
         try:
             base_demands = []
             # TODO: For some reason this is a list, but in Ky2 data there is
@@ -263,12 +263,12 @@ def load_water_network():
             for timeseries in wn.get_node(node).demand_timeseries_list:
                 base_demands.append(timeseries.base_value)
             base_demand = mean(base_demands)
-            G.node[node]['demand'] = base_demand
+            G.nodes[node]['demand'] = base_demand
             all_base_demands.append(base_demand)
         except AttributeError:
             # Nodes with no demand will not resize from the base_node_size
             all_base_demands.append(0.0)
-            G.node[node]['demand'] = "N/A"
+            G.nodes[node]['demand'] = "N/A"
         pipes = dict(G.adj[node])
         connected_str = ""
         i = 0
@@ -279,8 +279,8 @@ def load_water_network():
             for pipe, info in pipe_info.items():
                 connected_str = connected_str + pipe + " "
             i += 1
-        G.node[node]['connected'] = connected_str
-        G.node[node]['node_index'] = node_index
+        G.nodes[node]['connected'] = connected_str
+        G.nodes[node]['node_index'] = node_index
         node_index += 1
 
     # Normalise base demands
