@@ -55,7 +55,7 @@ def pollution_series(pollution, injection, timestep):
     return series
 
 
-def get_node_outlines(injection, node_highlight=None, type_highlight=None):
+def update_highlights():
     """Get the color and width for each node in the graph.
     These should be the same in every case except for the
     pollution start node and a chosen node to highlight if provided"""
@@ -70,6 +70,10 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
         'Reservoir': 'orange',
         'Tank': 'green'
         })
+
+    injection = pollution_location_dropdown.value
+    node_highlight = node_highlight_dropdown.value
+    type_highlight = node_type_dropdown.value
 
     outline_colors = []
     outline_widths = []
@@ -92,7 +96,8 @@ def get_node_outlines(injection, node_highlight=None, type_highlight=None):
                 outline_colors.append(colors[node_type])
             outline_widths.append(2)
 
-    return outline_colors, outline_widths
+    data = graph.node_renderer.data_source.data
+    data['line_color'], data['line_width'] = outline_colors, outline_widths
 
 
 def update():
@@ -100,16 +105,12 @@ def update():
     and edge colors"""
     # Get injection node
     start_node = pollution_location_dropdown.value
-    node_highlight = node_highlight_dropdown.value
-    type_highlight = node_type_dropdown.value
     timestep = slider.value
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(pollution, start_node, timestep)
 
     # Set node outlines
     data = graph.node_renderer.data_source.data
-    lines = get_node_outlines(start_node, node_highlight, type_highlight)
-    data['line_color'], data['line_width'] = lines
 
     # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
@@ -130,15 +131,15 @@ def update():
 def update_node_highlight(attrname, old, new):
     """Highlight node drop down callback.
     As node colours depend on many widget values, this callback simply calls
-    the update function."""
-    update()
+    the update highlights function."""
+    update_highlights()
 
 
 def update_node_type_highlight(attrname, old, new):
     """Highlight node type drop down callback.
     As node colours depend on many widget values, this callback simply calls
-    the update function."""
-    update()
+    the update highlights function."""
+    update_highlights()
 
 
 def update_slider(attrname, old, new):
@@ -150,8 +151,10 @@ def update_slider(attrname, old, new):
 
 def update_injection(attrname, old, new):
     """Pollution injection node drop down callback.
-    As node colours depend on many widget values, this callback simply calls
-    the update function."""
+    As the injection site affects both the node highlights and pollution data
+    this callback calls the update highlights function followed by the update
+    function"""
+    update_highlights()
     update()
 
 
@@ -308,28 +311,26 @@ play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
 # Dropdown menu to highlight a particular node
-node_highlight_dropdown = Dropdown(label="Highlight Node",
+node_highlight_dropdown = Dropdown(label="Highlight Node", value=None,
                                    css_classes=['green_button'],
                                    menu=list(G.nodes()))
 node_highlight_dropdown.on_change('value', update_node_highlight)
-node_highlight_dropdown.value = None
 
 # Dropdown menu to highlight a node type
-node_type_dropdown = Dropdown(label="Highlight Node Type",
-                                    css_classes=['purple_button'],
-                                    menu=['None',
-                                          'Reservoir',
-                                          'Tank',
-                                          'Junction'])
+node_type_dropdown = Dropdown(label="Highlight Node Type", value=None,
+                              css_classes=['purple_button'],
+                              menu=['None',
+                                    'Reservoir',
+                                    'Tank',
+                                    'Junction'])
 node_type_dropdown.on_change('value', update_node_type_highlight)
-node_type_dropdown.value = None
 
 # Dropdown menu to choose pollution start location
 pollution_location_dropdown = Dropdown(label="Pollution Injection Node",
+                                       value=scenarios[0],
                                        css_classes=['blue_button'],
                                        menu=scenarios)
 pollution_location_dropdown.on_change('value', update_injection)
-pollution_location_dropdown.value = scenarios[0]
 
 # Dropdown menu to choose node size and demand weighting
 initial_node_size = 8
@@ -365,6 +366,10 @@ layout = row(
     plot,
     sizing_mode="stretch_both"
 )
+
+# Initialise
+update_highlights()
+update()
 
 curdoc().add_root(layout)
 curdoc().title = "Kentucky water distribution Ky2"
