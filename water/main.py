@@ -11,7 +11,7 @@ from collections import defaultdict
 import colorcet as cc
 import datetime
 from modules.load_data import load_water_network, load_pollution_dynamics
-import pandas as pd
+from modules.pollution import pollution_series, pollution_scenario
 
 callback_id = None
 
@@ -21,54 +21,6 @@ BUTTON_LABEL_PLAYING = '❚❚ Pause'
 
 # Node scaling factor
 NODE_SCALING = 15
-
-
-def pollution_series(pollution_scenario, timestep):
-    """
-    Produce a pandas series of the pollution for each node for a given
-    injection site and timestep.
-
-    If the timestep has no pollution data a series of zeroes is returned.
-
-    Args:
-        pollution_scenario (pandas.Dataframe): A dataframe of the pollution
-            values at each node for set of timesteps. The columns of the
-            Dataframe are the node labels and the index is a set of timesteps.
-        timestep (int): The time step.
-
-    Returns:
-        pandas.Series: The pollution value at each node for the given timestep
-            and injection location.
-    """
-    # Extract the pollution series at the given timestep
-    if timestep in pollution_scenario.index:
-        series = pollution_scenario.loc[timestep]
-    else:
-        # Construct a series of zero pollution
-        series = pd.Series(dict(zip(pollution_scenario.columns,
-                                    [0]*G.number_of_nodes())))
-
-    return series
-
-
-def pollution_scenario(pollution, injection):
-    """
-    Produce a pandas dataframe given the pollution in each node over a series
-    of timesteps for a given injection site.
-
-    Args:
-        pollution (dict): A dictionary of the pollution dynamics as produced by
-            wntr. The keys are injection sites and the values are a Pandas
-            Dataframe describing the pollution dynamics.  The columns of the
-            Dataframe are the node labels and the index is a set of timesteps.
-        injection (str): The node label of the injection site.
-
-    Returns:
-        pandas.Dataframe: The pollution value at each node for a set of
-            timessteps. The columns of the dataframe are the node labels and
-            the index is a set of timesteps.
-    """
-    return pollution[injection]
 
 
 def update_highlights():
