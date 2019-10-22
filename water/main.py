@@ -23,7 +23,7 @@ BUTTON_LABEL_PLAYING = '❚❚ Pause'
 NODE_SCALING = 15
 
 
-def pollution_series(pollution, injection, timestep):
+def pollution_series(pollution_scenario, timestep):
     """
     Produce a pandas series of the pollution for each node for a given
     injection site and timestep.
@@ -31,28 +31,44 @@ def pollution_series(pollution, injection, timestep):
     If the timestep has no pollution data a series of zeroes is returned.
 
     Args:
+        pollution_scenario (pandas.Dataframe): A dataframe of the pollution
+            values at each node for set of timesteps. The columns of the
+            Dataframe are the node labels and the index is a set of timesteps.
+        timestep (int): The time step.
+
+    Returns:
+        pandas.Series: The pollution value at each node for the given timestep
+            and injection location.
+    """
+    # Extract the pollution series at the given timestep
+    if timestep in pollution_scenario.index:
+        series = pollution_scenario.loc[timestep]
+    else:
+        # Construct a series of zero pollution
+        series = pd.Series(dict(zip(pollution_scenario.columns,
+                                    [0]*G.number_of_nodes())))
+
+    return series
+
+
+def pollution_scenario(pollution, injection):
+    """
+    Produce a pandas dataframe given the pollution in each node over a series
+    of timesteps for a given injection site.
+
+    Args:
         pollution (dict): A dictionary of the pollution dynamics as produced by
             wntr. The keys are injection sites and the values are a Pandas
             Dataframe describing the pollution dynamics.  The columns of the
             Dataframe are the node labels and the index is a set of timesteps.
         injection (str): The node label of the injection site.
-        timestep (int): The time step.
 
     Returns:
-        Pandas.Series: The pollution value at each node for the given timestep
-            and injection location.
+        pandas.Dataframe: The pollution value at each node for a set of
+            timessteps. The columns of the dataframe are the node labels and
+            the index is a set of timesteps.
     """
-    # Get pollution dataframe for the given injection site
-    dataframe = pollution[injection]
-    # Extract the pollution series at the given timestep
-    if timestep in dataframe.index:
-        series = dataframe.loc[timestep]
-    else:
-        # Construct a series of zero pollution
-        series = pd.Series(dict(zip(pollution[injection].columns,
-                                    [0]*G.number_of_nodes())))
-
-    return series
+    return pollution[injection]
 
 
 def update_highlights():
@@ -116,7 +132,7 @@ def update():
     start_node = pollution_location_dropdown.value
     timestep = slider.value
     # Get pollution for each node for the given injection site and timestep
-    series = pollution_series(pollution, start_node, timestep)
+    series = pollution_series(scenario, timestep)
 
     # Set node outlines
     data = graph.node_renderer.data_source.data
@@ -160,9 +176,12 @@ def update_slider(attrname, old, new):
 
 def update_injection(attrname, old, new):
     """Pollution injection node drop down callback.
+    The global variable scenario, which holds the dataframe of pollution
+    dynamics is updated.
     As the injection site affects both the node highlights and pollution data
-    this callback calls the update highlights function followed by the update
-    function"""
+    this callback calls both the update highlights and the update functions"""
+    global scenario
+    scenario = pollution_scenario(pollution, new)
     update_highlights()
     update()
 
@@ -236,9 +255,6 @@ G, locations, all_base_demands = load_water_network()
 
 (pollution, scenarios, start_node, start_pol, end_pol, step_pol,
  max_pol, min_pol) = load_pollution_dynamics()
-
-# Get pollution values for time zero
-pollution_values = list(pollution_series(pollution, start_node, 0))
 
 # Create figure object
 x_bounds, y_bounds = plot_bounds(locations)
@@ -377,6 +393,7 @@ layout = row(
 )
 
 # Initialise
+scenario = pollution_scenario(pollution, pollution_location_dropdown.value)
 update_highlights()
 update()
 
