@@ -322,7 +322,7 @@ play_button.on_click(animate)
 # Dropdown menu to highlight a particular node
 node_highlight_dropdown = Dropdown(label="Highlight Node", value=None,
                                    css_classes=['green_button'],
-                                   menu=list(G.nodes()))
+                                   menu=['None']+list(G.nodes()))
 node_highlight_dropdown.on_change('value', update_node_highlight)
 
 # Dropdown menu to highlight a node type
