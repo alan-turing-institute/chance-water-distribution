@@ -321,11 +321,9 @@ node_size_slider.on_change('value', update_node_size)
 # Animation speeds and speed drop down entries. 'Speeds' are in ms per frame
 speed_menu = ['Slow', 'Medium', 'Fast']
 speeds = dict(zip(speed_menu, [250, 100, 30]))
-speed_dropdown = Dropdown(label="Animation Speed", button_type="primary",
-                          menu=speed_menu)
+speed_dropdown = Dropdown(label="Animation Speed", value='Medium',
+                          button_type="primary", menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
-# Starting animation speed
-animation_speed = speeds['Medium']
 
 # Create the layout for the graph and widgets
 layout = row(
@@ -344,6 +342,7 @@ layout = row(
 )
 
 # Initialise
+animation_speed = speeds[speed_dropdown.value]
 scenario = pollution_scenario(pollution, pollution_location_dropdown.value)
 update_highlights()
 update()
