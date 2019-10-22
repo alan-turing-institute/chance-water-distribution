@@ -215,13 +215,13 @@ def animate():
         curdoc().remove_periodic_callback(callback_id)
 
 
-def update_speed(attr, old, new):
+def update_speed(attrname, old, new):
     """Adjust the animation speed"""
     global callback_id
     global animation_speed
 
     # Update animation speed
-    animation_speed = speeds[speed_dropdown.value]
+    animation_speed = speeds[new]
 
     # If animation is playing recreate the periodic callback
     if play_button.label == BUTTON_LABEL_PLAYING:
