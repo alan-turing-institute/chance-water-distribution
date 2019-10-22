@@ -56,12 +56,22 @@ def pollution_series(pollution, injection, timestep):
 
 
 def update_highlights():
-    """Get the color and width for each node in the graph.
-    These should be the same in every case except for the
-    pollution start node and a chosen node to highlight if provided"""
+    """Set the color and width for each node in the graph."""
     # Color of injection node (Light blue)
     # (color used by injection button, update in CSS too on change)
     injection_color = "#34c3eb"
+
+    # Color of selected node (bright green)
+    # (color used by highlight button, update in CSS too on change)
+    highlight_color = "#07db1c"
+
+    # Color of selected node type
+    type_highlight_color = "purple"
+
+    # Widths for edges of highlighted and normal nodes
+    highlight_width = 3.0
+    normal_width = 2.0
+
     # Create a default dictionary for node types, any node with a type not in
     # the dictionary gets the default color
     colors = defaultdict(lambda: "magenta")
@@ -81,20 +91,19 @@ def update_highlights():
         if node == injection:
             # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
-            outline_widths.append(3)
+            outline_widths.append(highlight_width)
         elif node == node_highlight:
             # Color selected node bright green
-            # (color used by highlight button, update in CSS too on change)
-            outline_colors.append("#07db1c")
-            outline_widths.append(3)
+            outline_colors.append(highlight_color)
+            outline_widths.append(highlight_width)
         else:
             # Otherwise color based on the node type
             node_type = G.nodes[node]['type']
             if node_type == type_highlight:
-                outline_colors.append('purple')
+                outline_colors.append(type_highlight_color)
             else:
                 outline_colors.append(colors[node_type])
-            outline_widths.append(2)
+            outline_widths.append(normal_width)
 
     data = graph.node_renderer.data_source.data
     data['line_color'], data['line_width'] = outline_colors, outline_widths
