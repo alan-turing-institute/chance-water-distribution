@@ -194,11 +194,11 @@ def update_node_size(attrname, old, new):
         )
 
 
-def animate_update_colors():
+def step():
     """Move the slider by one step"""
-    timestep = slider.value + step_pol
-    if timestep > end_pol:
-        timestep = start_pol
+    timestep = slider.value + step_size
+    if timestep > end_step:
+        timestep = start_step
     slider.value = timestep
 
 
@@ -208,8 +208,7 @@ def animate():
     global animation_speed
     if play_button.label == BUTTON_LABEL_PAUSED:
         play_button.label = BUTTON_LABEL_PLAYING
-        callback_id = curdoc().add_periodic_callback(animate_update_colors,
-                                                     animation_speed)
+        callback_id = curdoc().add_periodic_callback(step, animation_speed)
     elif play_button.label == BUTTON_LABEL_PLAYING:
         play_button.label = BUTTON_LABEL_PAUSED
         curdoc().remove_periodic_callback(callback_id)
@@ -226,8 +225,7 @@ def update_speed(attrname, old, new):
     # If animation is playing recreate the periodic callback
     if play_button.label == BUTTON_LABEL_PLAYING:
         curdoc().remove_periodic_callback(callback_id)
-        callback_id = curdoc().add_periodic_callback(animate_update_colors,
-                                                     animation_speed)
+        callback_id = curdoc().add_periodic_callback(step, animation_speed)
 
 
 def plot_bounds(locations):
@@ -253,7 +251,7 @@ def plot_bounds(locations):
 
 G, locations, all_base_demands = load_water_network()
 
-(pollution, scenarios, start_node, start_pol, end_pol, step_pol,
+(pollution, scenarios, start_node, start_step, end_step, step_size,
  max_pol, min_pol) = load_pollution_dynamics()
 
 # Create figure object
@@ -328,7 +326,8 @@ TOOLTIPS = [
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
 # Slider to change the timestep of the pollution data visualised
-slider = Slider(start=0, end=end_pol, value=0, step=step_pol, title="Time (s)")
+slider = Slider(start=0, end=end_step, value=0, step=step_size,
+                title="Time (s)")
 slider.on_change('value', update_slider)
 
 # Play button to move the slider for the pollution timeseries
