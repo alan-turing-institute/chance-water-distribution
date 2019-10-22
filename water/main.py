@@ -362,8 +362,8 @@ initial_node_size = 8
 graph.node_renderer.data_source.data['size'] = (
     initial_node_size + all_base_demands*NODE_SCALING
     )
-node_size_slider = Slider(start=1, end=20, value=initial_node_size, step=1,
-                          title="Node Size")
+node_size_slider = Slider(start=5, end=20, value=initial_node_size, step=1,
+                          title="Base Node Size")
 node_size_slider.on_change('value', update_node_size)
 
 # Speed selection dropdown widget
