@@ -13,8 +13,6 @@ import datetime
 from modules.load_data import load_water_network, load_pollution_dynamics
 from modules.pollution import pollution_series, pollution_scenario
 
-callback_id = None
-
 # Labels for the play/pause button in paused and playing states respectively
 BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
@@ -342,6 +340,7 @@ layout = row(
 )
 
 # Initialise
+callback_id = None
 animation_speed = speeds[speed_dropdown.value]
 scenario = pollution_scenario(pollution, pollution_location_dropdown.value)
 update_highlights()
