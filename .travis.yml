@@ -16,4 +16,4 @@ script:
   # Check PEP8 compliance
   - pycodestyle --statistics --count water
   # Run tests
-  - python -m pytest -v tests water
+  - python -m pytest -v tests
