@@ -46,10 +46,10 @@ def pollution_history(pollution_scenario, node):
             in the pollution scenario.
     """
 
-    if node is not None:
-        return pollution_scenario[node]
-    else:
+    if node == 'None':
         return pd.Series([])
+    else:
+        return pollution_scenario[node]
 
 
 def pollution_scenario(pollution, injection):
