@@ -76,6 +76,16 @@ def update_highlights():
     data['line_color'], data['line_width'] = outline_colors, outline_widths
 
 
+def update_pollution_history():
+    history = pollution_history(scenario, node_highlight_dropdown.value)
+    pollution_history_source.data['time'] = history.index
+    pollution_history_source.data['pollution_value'] = history.values
+    pollution_history_plot.x_range.update(start=0,
+                                          end=max(history.index))
+    pollution_history_plot.y_range.update(start=0,
+                                          end=max(history.values))
+
+
 def update():
     """Update the appearance of the pollution dynamics network, including node
     and edge colors"""
@@ -84,10 +94,7 @@ def update():
     timestep = slider.value
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(scenario, timestep)
-    # Get pollution history for J-10 for the given injection site
-    history = pollution_history(scenario, 'J-10')
 
-    # Set node outlines
     data = graph.node_renderer.data_source.data
 
     # Set the status text
@@ -104,11 +111,7 @@ def update():
         edge_values.append((node1_pollution + node2_pollution) / 2.)
     graph.edge_renderer.data_source.data['colors'] = edge_values
 
-    # Update pollution history plot
-    pollution_history_source.data['time'] = history.index
-    pollution_history_source.data['pollution_value'] = history.values
-    pollution_history_plot.y_range.update(start=0,
-                                          end=max(history.values))
+    # Update timestep span on pollution history plot
     timestep_span.update(location=timestep)
 
 
@@ -117,6 +120,7 @@ def update_node_highlight(attrname, old, new):
     As node colours depend on many widget values, this callback simply calls
     the update highlights function."""
     update_highlights()
+    update_pollution_history()
 
 
 def update_node_type_highlight(attrname, old, new):
@@ -142,6 +146,7 @@ def update_injection(attrname, old, new):
     global scenario
     scenario = pollution_scenario(pollution, new)
     update_highlights()
+    update_pollution_history()
     update()
 
 
