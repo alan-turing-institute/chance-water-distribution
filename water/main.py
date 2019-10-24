@@ -294,8 +294,9 @@ pollution_history_source = ColumnDataSource(
     data=dict(time=[], pollution_value=[])
     )
 pollution_history_plot = figure(
-    # x_range=Range1d(0, pollution_history.index[-1]),
-    y_range=Range1d(0, 1000)
+    x_range=Range1d(0, 0),
+    y_range=Range1d(0, 0),
+    active_scroll='wheel_zoom'
     )
 pollution_history_plot.line('time', 'pollution_value',
                             source=pollution_history_source, line_width=2.0)
