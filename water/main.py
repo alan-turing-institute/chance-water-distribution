@@ -363,8 +363,8 @@ layout = row(
         slider,
         width=200, sizing_mode="stretch_height"
     ),
-    column(plot),
-    column(pollution_history_plot),
+    column(plot, sizing_mode="stretch_both"),
+    column(pollution_history_plot, sizing_mode="stretch_both"),
     sizing_mode="stretch_both"
 )
 
