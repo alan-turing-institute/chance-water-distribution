@@ -11,7 +11,8 @@ from collections import defaultdict
 import colorcet as cc
 import datetime
 from modules.load_data import load_water_network, load_pollution_dynamics
-from modules.pollution import pollution_series, pollution_scenario
+from modules.pollution import (pollution_series, pollution_history,
+                               pollution_scenario)
 
 # Labels for the play/pause button in paused and playing states respectively
 BUTTON_LABEL_PAUSED = '► Start Pollution'
@@ -84,7 +85,7 @@ def update():
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(scenario, timestep)
     # Get pollution history for J-10 for the given injection site
-    pollution_history = pollution[start_node]['J-10']
+    history = pollution_history(scenario, 'J-10')
 
     # Set node outlines
     data = graph.node_renderer.data_source.data
@@ -104,10 +105,10 @@ def update():
     graph.edge_renderer.data_source.data['colors'] = edge_values
 
     # Update pollution history plot
-    pollution_history_source.data['time'] = pollution_history.index
-    pollution_history_source.data['pollution_value'] = pollution_history.values
+    pollution_history_source.data['time'] = history.index
+    pollution_history_source.data['pollution_value'] = history.values
     pollution_history_plot.y_range.update(start=0,
-                                          end=max(pollution_history.values))
+                                          end=max(history.values))
     timestep_span.update(location=timestep)
 
 
@@ -287,13 +288,9 @@ plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 pollution_history_source = ColumnDataSource(
     data=dict(time=[], pollution_value=[])
     )
-pollution_history = pollution[start_node]['J-10']
-pollution_history_source.data['time'] = pollution_history.index
-pollution_history_source.data['pollution_value'] = pollution_history.values
-
 pollution_history_plot = figure(
-    x_range=Range1d(0, pollution_history.index[-1]),
-    y_range=Range1d(0, max(pollution_history.values))
+    # x_range=Range1d(0, pollution_history.index[-1]),
+    y_range=Range1d(0, 1000)
     )
 pollution_history_plot.line('time', 'pollution_value',
                             source=pollution_history_source, line_width=2.0)
@@ -370,6 +367,9 @@ layout = row(
 callback_id = None
 animation_speed = speeds[speed_dropdown.value]
 scenario = pollution_scenario(pollution, pollution_location_dropdown.value)
+history = pollution[start_node]['J-10']
+pollution_history_source.data['time'] = history.index
+pollution_history_source.data['pollution_value'] = history.values
 update_highlights()
 update()
 
