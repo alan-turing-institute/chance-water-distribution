@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider, Span,
                           Button, ColorBar, LogTicker, Title, ColumnDataSource)
-from bokeh.models.widgets import Dropdown, MultiSelect
+from bokeh.models.widgets import Dropdown, MultiSelect, Div
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -21,19 +21,20 @@ BUTTON_LABEL_PLAYING = '❚❚ Pause'
 # Node scaling factor
 NODE_SCALING = 15
 
+# Color of injection node (Light blue)
+# (color used by injection button, update in CSS too on change)
+injection_color = "#34c3eb"
+
+# Color of selected node (bright green)
+# (color used by highlight button, update in CSS too on change)
+highlight_color = "#07db1c"
+
+# Color of selected node type
+type_highlight_color = "purple"
+
 
 def update_highlights():
     """Set the color and width for each node in the graph."""
-    # Color of injection node (Light blue)
-    # (color used by injection button, update in CSS too on change)
-    injection_color = "#34c3eb"
-
-    # Color of selected node (bright green)
-    # (color used by highlight button, update in CSS too on change)
-    highlight_color = "#07db1c"
-
-    # Color of selected node type
-    type_highlight_color = "purple"
 
     # Widths for edges of highlighted and normal nodes
     highlight_width = 3.0
@@ -49,7 +50,7 @@ def update_highlights():
         })
 
     injection = pollution_location_dropdown.value
-    nodes_to_highlight = node_highlight_multiselect.value
+    nodes_to_highlight = pollution_hitory_multiselect.value
     type_highlight = node_type_dropdown.value
 
     outline_colors = []
@@ -77,7 +78,7 @@ def update_highlights():
 
 
 def update_pollution_history():
-    history = pollution_history(scenario, node_highlight_multiselect.value[0])
+    history = pollution_history(scenario, pollution_hitory_multiselect.value[0])
     pollution_history_source.data['time'] = history.index
     pollution_history_source.data['pollution_value'] = history.values
     if pollution_history_node != 'None':
@@ -101,9 +102,8 @@ def update():
 
     data = graph.node_renderer.data_source.data
 
-    # Set the status text
-    timer.text = ("Pollution Spread from " + start_node + ";  Time - "
-                  + str(datetime.timedelta(seconds=int(timestep))))
+    # Set the timer text
+    timer.text = "<h1 style='color:grey'>Time: " + str(datetime.timedelta(seconds=int(timestep))) + "</h1>"
     # Update node colours
     data['colors'] = list(series)
 
@@ -125,6 +125,7 @@ def update_node_highlight(attrname, old, new):
     the update highlights function."""
     update_highlights()
     update_pollution_history()
+    pollution_hitory_node_div.text = "<p>Selection: <b style='color:" + highlight_color + "'>" + pollution_hitory_multiselect.value[0] + "</b></p>"
 
 
 def update_node_type_highlight(attrname, old, new):
@@ -231,10 +232,6 @@ plot = figure(x_range=x_bounds, y_range=y_bounds, active_scroll='wheel_zoom',
 tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
 
-# Add a timer label under plot
-timer = Title(text_font_size='35pt', text_color='grey')
-plot.add_layout(timer, 'below')
-
 # Create bokeh graph from the NetworkX object
 graph = from_networkx(G, locations)
 
@@ -318,10 +315,13 @@ play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
 # Menu to highlight nodes green and display pollution history
-node_highlight_multiselect = MultiSelect(title="Pollution History",
+pollution_hitory_multiselect = MultiSelect(title="Pollution History",
                                          value=["None"],
                                          options=['None']+list(G.nodes()))
-node_highlight_multiselect.on_change('value', update_node_highlight)
+pollution_hitory_multiselect.on_change('value', update_node_highlight)
+
+# Create a div to show the name of pollution history node
+pollution_hitory_node_div = Div(text="<p>Selection: <b>None</b></p>")
 
 # Dropdown menu to highlight a node type
 node_type_dropdown = Dropdown(label="Highlight Node Type", value='None',
@@ -356,20 +356,28 @@ speed_dropdown = Dropdown(label="Animation Speed", value='Medium',
                           button_type="primary", menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
 
+# Create a div for the timer
+timer = Div(text="")
+
 # Create the layout for the graph and widgets
-layout = row(
-    column(
-        node_highlight_multiselect,
-        node_type_dropdown,
-        pollution_location_dropdown,
-        node_size_slider,
-        play_button,
-        speed_dropdown,
-        slider,
-        width=200, sizing_mode="stretch_height"
+layout = column(
+    row(
+        column(
+            pollution_hitory_multiselect,
+            pollution_hitory_node_div,
+            node_type_dropdown,
+            pollution_location_dropdown,
+            node_size_slider,
+            play_button,
+            speed_dropdown,
+            slider,
+            timer,
+            width=200, sizing_mode="stretch_height"
+        ),
+        plot,
+        pollution_history_plot,
+        sizing_mode="stretch_both"
     ),
-    column(plot, sizing_mode="stretch_both"),
-    column(pollution_history_plot, sizing_mode="stretch_both"),
     sizing_mode="stretch_both"
 )
 
