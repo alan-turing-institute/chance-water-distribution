@@ -1,8 +1,8 @@
 from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider,
-                          Button, ColorBar, LogTicker, Title)
+from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider, Span,
+                          Button, ColorBar, LogTicker, Title, ColumnDataSource)
 from bokeh.models.widgets import Dropdown
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -11,7 +11,8 @@ from collections import defaultdict
 import colorcet as cc
 import datetime
 from modules.load_data import load_water_network, load_pollution_dynamics
-from modules.pollution import pollution_series, pollution_scenario
+from modules.pollution import (pollution_series, pollution_history,
+                               pollution_scenario)
 
 # Labels for the play/pause button in paused and playing states respectively
 BUTTON_LABEL_PAUSED = '► Start Pollution'
@@ -75,6 +76,16 @@ def update_highlights():
     data['line_color'], data['line_width'] = outline_colors, outline_widths
 
 
+def update_pollution_history():
+    history = pollution_history(scenario, node_highlight_dropdown.value)
+    pollution_history_source.data['time'] = history.index
+    pollution_history_source.data['pollution_value'] = history.values
+    pollution_history_plot.x_range.update(start=0,
+                                          end=max(history.index))
+    pollution_history_plot.y_range.update(start=0,
+                                          end=max(history.values))
+
+
 def update():
     """Update the appearance of the pollution dynamics network, including node
     and edge colors"""
@@ -84,13 +95,11 @@ def update():
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(scenario, timestep)
 
-    # Set node outlines
     data = graph.node_renderer.data_source.data
 
     # Set the status text
     timer.text = ("Pollution Spread from " + start_node + ";  Time - "
                   + str(datetime.timedelta(seconds=int(timestep))))
-
     # Update node colours
     data['colors'] = list(series)
 
@@ -102,12 +111,16 @@ def update():
         edge_values.append((node1_pollution + node2_pollution) / 2.)
     graph.edge_renderer.data_source.data['colors'] = edge_values
 
+    # Update timestep span on pollution history plot
+    timestep_span.update(location=timestep)
+
 
 def update_node_highlight(attrname, old, new):
     """Highlight node drop down callback.
     As node colours depend on many widget values, this callback simply calls
     the update highlights function."""
     update_highlights()
+    update_pollution_history()
 
 
 def update_node_type_highlight(attrname, old, new):
@@ -133,6 +146,7 @@ def update_injection(attrname, old, new):
     global scenario
     scenario = pollution_scenario(pollution, new)
     update_highlights()
+    update_pollution_history()
     update()
 
 
@@ -275,6 +289,21 @@ TOOLTIPS = [
 ]
 plot.add_tools(HoverTool(tooltips=TOOLTIPS))
 
+# Pollution history plot
+pollution_history_source = ColumnDataSource(
+    data=dict(time=[], pollution_value=[])
+    )
+pollution_history_plot = figure(
+    x_range=Range1d(0, 0),
+    y_range=Range1d(0, 0),
+    active_scroll='wheel_zoom'
+    )
+pollution_history_plot.line('time', 'pollution_value',
+                            source=pollution_history_source, line_width=2.0)
+timestep_span = Span(location=0, dimension='height', line_dash='dashed',
+                     line_width=2.0)
+pollution_history_plot.add_layout(timestep_span)
+
 # Slider to change the timestep of the pollution data visualised
 slider = Slider(start=0, end=end_step, value=0, step=step_size,
                 title="Time (s)")
@@ -285,13 +314,13 @@ play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
 # Dropdown menu to highlight a particular node
-node_highlight_dropdown = Dropdown(label="Highlight Node", value=None,
+node_highlight_dropdown = Dropdown(label="Pollution History", value='None',
                                    css_classes=['green_button'],
                                    menu=['None']+list(G.nodes()))
 node_highlight_dropdown.on_change('value', update_node_highlight)
 
 # Dropdown menu to highlight a node type
-node_type_dropdown = Dropdown(label="Highlight Node Type", value=None,
+node_type_dropdown = Dropdown(label="Highlight Node Type", value='None',
                               css_classes=['purple_button'],
                               menu=['None',
                                     'Reservoir',
@@ -335,7 +364,8 @@ layout = row(
         slider,
         width=200, sizing_mode="stretch_height"
     ),
-    plot,
+    column(plot, sizing_mode="stretch_both"),
+    column(pollution_history_plot, sizing_mode="stretch_both"),
     sizing_mode="stretch_both"
 )
 
@@ -343,6 +373,9 @@ layout = row(
 callback_id = None
 animation_speed = speeds[speed_dropdown.value]
 scenario = pollution_scenario(pollution, pollution_location_dropdown.value)
+history = pollution[start_node]['J-10']
+pollution_history_source.data['time'] = history.index
+pollution_history_source.data['pollution_value'] = history.values
 update_highlights()
 update()
 

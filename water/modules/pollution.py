@@ -30,6 +30,28 @@ def pollution_series(pollution_scenario, timestep):
     return series
 
 
+def pollution_history(pollution_scenario, node):
+    """
+    Produce a pandas series of the pollution over time for a particular node
+    extracted from a pollution scenario.
+
+    Args:
+        pollution_scenario (pandas.Dataframe): A dataframe of the pollution
+            values at each node for set of timesteps. The columns of the
+            Dataframe are the node labels and the index is a set of timesteps.
+        node (str): The label of the node.
+
+    Returns:
+        pandas.Series: The pollution value at each timestep for the given node
+            in the pollution scenario.
+    """
+
+    if node == 'None':
+        return pd.Series([])
+    else:
+        return pollution_scenario[node]
+
+
 def pollution_scenario(pollution, injection):
     """
     Produce a pandas dataframe given the pollution in each node over a series
