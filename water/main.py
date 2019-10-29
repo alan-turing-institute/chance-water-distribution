@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider, Span,
                           Button, ColorBar, LogTicker, Title, ColumnDataSource)
-from bokeh.models.widgets import Dropdown
+from bokeh.models.widgets import Dropdown, MultiSelect
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -49,7 +49,7 @@ def update_highlights():
         })
 
     injection = pollution_location_dropdown.value
-    node_highlight = node_highlight_dropdown.value
+    nodes_to_highlight = node_highlight_multiselect.value
     type_highlight = node_type_dropdown.value
 
     outline_colors = []
@@ -59,7 +59,7 @@ def update_highlights():
             # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(highlight_width)
-        elif node == node_highlight:
+        elif node in nodes_to_highlight:
             # Color selected node bright green
             outline_colors.append(highlight_color)
             outline_widths.append(highlight_width)
@@ -77,8 +77,7 @@ def update_highlights():
 
 
 def update_pollution_history():
-    pollution_history_node = node_highlight_dropdown.value
-    history = pollution_history(scenario, pollution_history_node)
+    history = pollution_history(scenario, node_highlight_multiselect.value[0])
     pollution_history_source.data['time'] = history.index
     pollution_history_source.data['pollution_value'] = history.values
     if pollution_history_node != 'None':
@@ -318,11 +317,11 @@ slider.on_change('value', update_slider)
 play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
-# Dropdown menu to highlight a particular node
-node_highlight_dropdown = Dropdown(label="Pollution History", value='None',
-                                   css_classes=['green_button'],
-                                   menu=['None']+list(G.nodes()))
-node_highlight_dropdown.on_change('value', update_node_highlight)
+# Menu to highlight nodes green and display pollution history
+node_highlight_multiselect = MultiSelect(title="Pollution History",
+                                         value=["None"],
+                                         options=['None']+list(G.nodes()))
+node_highlight_multiselect.on_change('value', update_node_highlight)
 
 # Dropdown menu to highlight a node type
 node_type_dropdown = Dropdown(label="Highlight Node Type", value='None',
@@ -360,7 +359,7 @@ speed_dropdown.on_change('value', update_speed)
 # Create the layout for the graph and widgets
 layout = row(
     column(
-        node_highlight_dropdown,
+        node_highlight_multiselect,
         node_type_dropdown,
         pollution_location_dropdown,
         node_size_slider,
