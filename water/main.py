@@ -50,7 +50,7 @@ def update_highlights():
         })
 
     injection = pollution_location_dropdown.value
-    nodes_to_highlight = pollution_hitory_multiselect.value
+    nodes_to_highlight = pollution_history_multiselect.value
     type_highlight = node_type_dropdown.value
 
     outline_colors = []
@@ -78,7 +78,7 @@ def update_highlights():
 
 
 def update_pollution_history():
-    history = pollution_history(scenario, pollution_hitory_multiselect.value[0])
+    history = pollution_history(scenario, pollution_history_multiselect.value[0])
     pollution_history_source.data['time'] = history.index
     pollution_history_source.data['pollution_value'] = history.values
     if pollution_history_node != 'None':
@@ -125,7 +125,7 @@ def update_node_highlight(attrname, old, new):
     the update highlights function."""
     update_highlights()
     update_pollution_history()
-    pollution_hitory_node_div.text = "<p>Selection: <b style='color:" + highlight_color + "'>" + pollution_hitory_multiselect.value[0] + "</b></p>"
+    pollution_history_node_div.text = "<p>Selection: <b style='color:" + highlight_color + "'>" + pollution_history_multiselect.value[0] + "</b></p>"
 
 
 def update_node_type_highlight(attrname, old, new):
@@ -153,6 +153,7 @@ def update_injection(attrname, old, new):
     update_highlights()
     update_pollution_history()
     update()
+    pollution_location_div.text = "<p>Selection: <b style='color:" + injection_color + "'>" + pollution_location_dropdown.value + "</b></p>"
 
 
 def update_node_size(attrname, old, new):
@@ -315,13 +316,13 @@ play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
 # Menu to highlight nodes green and display pollution history
-pollution_hitory_multiselect = MultiSelect(title="Pollution History",
+pollution_history_multiselect = MultiSelect(title="Pollution History",
                                          value=["None"],
                                          options=['None']+list(G.nodes()))
-pollution_hitory_multiselect.on_change('value', update_node_highlight)
+pollution_history_multiselect.on_change('value', update_node_highlight)
 
 # Create a div to show the name of pollution history node
-pollution_hitory_node_div = Div(text="<p>Selection: <b>None</b></p>")
+pollution_history_node_div = Div(text="<p>Selection: <b>None</b></p>")
 
 # Dropdown menu to highlight a node type
 node_type_dropdown = Dropdown(label="Highlight Node Type", value='None',
@@ -338,6 +339,9 @@ pollution_location_dropdown = Dropdown(label="Pollution Injection Node",
                                        css_classes=['blue_button'],
                                        menu=scenarios)
 pollution_location_dropdown.on_change('value', update_injection)
+
+# Create a div to show the name of pollution start node
+pollution_location_div = Div(text="<p>Selection: <b style='color:" + injection_color + "'>" + pollution_location_dropdown.value + "</b></p>")
 
 # Dropdown menu to choose node size and demand weighting
 initial_node_size = 8
@@ -363,10 +367,11 @@ timer = Div(text="")
 layout = column(
     row(
         column(
-            pollution_hitory_multiselect,
-            pollution_hitory_node_div,
+            pollution_history_multiselect,
+            pollution_history_node_div,
             node_type_dropdown,
             pollution_location_dropdown,
+            pollution_location_div,
             node_size_slider,
             play_button,
             speed_dropdown,
