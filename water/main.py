@@ -77,13 +77,18 @@ def update_highlights():
 
 
 def update_pollution_history():
-    history = pollution_history(scenario, node_highlight_dropdown.value)
+    pollution_history_node = node_highlight_dropdown.value
+    history = pollution_history(scenario, pollution_history_node)
     pollution_history_source.data['time'] = history.index
     pollution_history_source.data['pollution_value'] = history.values
-    pollution_history_plot.x_range.update(start=0,
-                                          end=max(history.index))
-    pollution_history_plot.y_range.update(start=0,
-                                          end=max(history.values))
+    if pollution_history_node != 'None':
+        pollution_history_plot.x_range.update(start=0,
+                                              end=max(history.index))
+        pollution_history_plot.y_range.update(start=0,
+                                              end=max(history.values))
+    else:
+        pollution_history_plot.x_range.update(start=0, end=0)
+        pollution_history_plot.y_range.update(start=0, end=0)
 
 
 def update():
