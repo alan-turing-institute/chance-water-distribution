@@ -10,7 +10,7 @@ from bokeh.transform import log_cmap
 from collections import defaultdict
 import colorcet as cc
 from modules.html_formatter import (timer_html, pollution_history_html,
-                                    pollution_loaction_html)
+                                    pollution_loaction_html, node_type_html)
 from modules.load_data import load_water_network, load_pollution_dynamics
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
@@ -52,7 +52,7 @@ def update_highlights():
 
     injection = pollution_location_select.value
     node_to_highlight = pollution_history_select.value
-    type_highlight = node_type_dropdown.value
+    type_highlight = node_type_select.value
 
     outline_colors = []
     outline_widths = []
@@ -135,6 +135,8 @@ def update_node_type_highlight(attrname, old, new):
     As node colours depend on many widget values, this callback simply calls
     the update highlights function."""
     update_highlights()
+    node_type = node_type_select.value
+    type_div.text = node_type_html(node_type, type_highlight_color)
 
 
 def update_slider(attrname, old, new):
@@ -329,13 +331,16 @@ pollution_history_select.on_change('value', update_node_highlight)
 pollution_history_node_div = Div(text=pollution_history_html())
 
 # Dropdown menu to highlight a node type
-node_type_dropdown = Dropdown(label="Highlight Node Type", value='None',
-                              css_classes=['purple_button'],
-                              menu=['None',
-                                    'Reservoir',
-                                    'Tank',
-                                    'Junction'])
-node_type_dropdown.on_change('value', update_node_type_highlight)
+node_type_select = Select(title="Highlight Node Type",
+                          value='None',
+                          options=['None',
+                                   'Reservoir',
+                                   'Tank',
+                                   'Junction'])
+node_type_select.on_change('value', update_node_type_highlight)
+
+# Create a div to show the selected node type to highlight
+type_div = Div(text=node_type_html())
 
 # Dropdown menu to choose pollution start location
 pollution_location_select = Select(title="Pollution Injection Node",
@@ -374,9 +379,10 @@ layout = column(
         column(
             pollution_history_select,
             pollution_history_node_div,
-            node_type_dropdown,
             pollution_location_select,
             pollution_location_div,
+            node_type_select,
+            type_div,
             node_size_slider,
             play_button,
             speed_dropdown,
