@@ -135,8 +135,8 @@ def update_node_type_highlight(attrname, old, new):
     As node colours depend on many widget values, this callback simply calls
     the update highlights function."""
     update_highlights()
-    type = node_type_select.value
-    type_div.text = node_type_html(type, type_highlight_color)
+    node_type = node_type_select.value
+    type_div.text = node_type_html(node_type, type_highlight_color)
 
 
 def update_slider(attrname, old, new):
