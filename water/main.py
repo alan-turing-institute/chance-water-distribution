@@ -332,11 +332,11 @@ pollution_history_node_div = Div(text=pollution_history_html())
 
 # Dropdown menu to highlight a node type
 node_type_select = Select(title="Highlight Node Type",
-                            value='None',
-                            options=['None',
-                                     'Reservoir',
-                                     'Tank',
-                                     'Junction'])
+                          value='None',
+                          options=['None',
+                                   'Reservoir',
+                                   'Tank',
+                                   'Junction'])
 node_type_select.on_change('value', update_node_type_highlight)
 
 # Create a div to show the selected node type to highlight
