@@ -225,7 +225,7 @@ def plot_bounds(locations):
 
 G, locations, all_base_demands = load_water_network()
 
-(pollution, pollution_nodes, start_node, start_step, end_step, step_size,
+(pollution, injection_nodes, start_node, start_step, end_step, step_size,
  max_pol, min_pol) = load_pollution_dynamics()
 
 # Create figure object
@@ -339,9 +339,9 @@ node_type_dropdown.on_change('value', update_node_type_highlight)
 
 # Dropdown menu to choose pollution start location
 pollution_location_dropdown = Dropdown(label="Pollution Injection Node",
-                                       value=pollution_nodes[0],
+                                       value=injection_nodes[0],
                                        css_classes=['blue_button'],
-                                       menu=pollution_nodes)
+                                       menu=injection_nodes)
 pollution_location_dropdown.on_change('value', update_injection)
 
 # Create a div to show the name of pollution start node
