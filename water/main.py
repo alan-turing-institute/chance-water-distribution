@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider, Span,
                           Button, ColorBar, LogTicker, ColumnDataSource)
-from bokeh.models.widgets import Dropdown, MultiSelect, Div
+from bokeh.models.widgets import Dropdown, MultiSelect, Div, Select
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -50,7 +50,7 @@ def update_highlights():
         'Tank': 'green'
         })
 
-    injection = pollution_location_dropdown.value
+    injection = pollution_location_select.value
     nodes_to_highlight = pollution_history_multiselect.value
     type_highlight = node_type_dropdown.value
 
@@ -145,7 +145,7 @@ def update_slider(attrname, old, new):
 
 
 def update_injection(attrname, old, new):
-    """Pollution injection node drop down callback.
+    """Pollution injection node location drop down callback.
     The global variable scenario, which holds the dataframe of pollution
     dynamics is updated.
     As the injection site affects both the node highlights and pollution data
@@ -155,7 +155,7 @@ def update_injection(attrname, old, new):
     update_highlights()
     update_pollution_history()
     update()
-    injection_node = pollution_location_dropdown.value
+    injection_node = pollution_location_select.value
     pollution_location_div.text = pollution_loaction_html(injection_node,
                                                           injection_color)
 
@@ -338,14 +338,13 @@ node_type_dropdown = Dropdown(label="Highlight Node Type", value='None',
 node_type_dropdown.on_change('value', update_node_type_highlight)
 
 # Dropdown menu to choose pollution start location
-pollution_location_dropdown = Dropdown(label="Pollution Injection Node",
+pollution_location_select = Select(title="Pollution Injection Node",
                                        value=injection_nodes[0],
-                                       css_classes=['blue_button'],
-                                       menu=injection_nodes)
-pollution_location_dropdown.on_change('value', update_injection)
+                                       options=injection_nodes)
+pollution_location_select.on_change('value', update_injection)
 
 # Create a div to show the name of pollution start node
-injection_node = pollution_location_dropdown.value
+injection_node = pollution_location_select.value
 pol_location_html = pollution_loaction_html(injection_node, injection_color)
 pollution_location_div = Div(text=pol_location_html)
 
@@ -376,7 +375,7 @@ layout = column(
             pollution_history_multiselect,
             pollution_history_node_div,
             node_type_dropdown,
-            pollution_location_dropdown,
+            pollution_location_select,
             pollution_location_div,
             node_size_slider,
             play_button,
@@ -395,7 +394,7 @@ layout = column(
 # Initialise
 callback_id = None
 animation_speed = speeds[speed_dropdown.value]
-scenario = pollution_scenario(pollution, pollution_location_dropdown.value)
+scenario = pollution_scenario(pollution, pollution_location_select.value)
 history = pollution[start_node]['J-10']
 pollution_history_source.data['time'] = history.index
 pollution_history_source.data['pollution_value'] = history.values
