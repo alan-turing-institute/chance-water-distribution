@@ -82,10 +82,10 @@ def load_pollution_dynamics():
     # Determine max and min pollution values and all scenario names
     max_pols = []
     min_pols = []
-    scenarios = []
+    pollution_nodes = []
     for key, df in pollution.items():
         if key != 'chemical_start_time':
-            scenarios.append(key)
+            pollution_nodes.append(key)
             v = df.values.ravel()
             max_pols.append(np.max(v))
             min_pols.append(np.min(v[v > 0]))
@@ -93,10 +93,10 @@ def load_pollution_dynamics():
     min_pol = np.min(min_pols)
 
     # Choose a default node for pollution injection
-    start_node = scenarios[0]
+    start_node = pollution_nodes[0]
 
     # Determine the step numbers for the beginning and end of the pollution
-    # data. This assumes all pollution scenarios are identical in time to the
+    # data. This assumes all pollution pollution_nodes are identical in time to the
     # default starting node!
     start = pollution[start_node].index.min()
     end = pollution[start_node].index.max()
@@ -104,4 +104,4 @@ def load_pollution_dynamics():
     # Get the timstep size for the slider from the pollution df
     step = pollution[start_node].index[1] - pollution[start_node].index[0]
 
-    return pollution, scenarios, start_node, start, end, step, max_pol, min_pol
+    return pollution, pollution_nodes, start_node, start, end, step, max_pol, min_pol
