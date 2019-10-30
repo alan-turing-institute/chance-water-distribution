@@ -11,7 +11,8 @@ from collections import defaultdict
 import colorcet as cc
 from modules.html_formatter import (timer_html, pollution_history_html,
                                     pollution_loaction_html, node_type_html)
-from modules.load_data import load_water_network, load_pollution_dynamics
+from modules.load_data import (load_water_network, load_pollution_dynamics,
+                               get_network_examples)
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
 
@@ -373,10 +374,17 @@ speed_dropdown.on_change('value', update_speed)
 # Create a div for the timer
 timer = Div(text="")
 
+# Create a selector for the water network example
+networks = get_network_examples()
+network_select = Select(title="Choose Water Network",
+                        value=networks[0],
+                        options=networks)
+
 # Create the layout for the graph and widgets
 layout = column(
     row(
         column(
+            network_select,
             pollution_history_select,
             pollution_history_node_div,
             pollution_location_select,

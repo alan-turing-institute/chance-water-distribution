@@ -1,9 +1,20 @@
 import wntr
 import numpy as np
 from os import listdir
-from os.path import dirname, join
+from os.path import dirname, join, isdir
 import pickle
 from statistics import mean
+
+
+def get_network_examples():
+    examples = []
+    dir = join(dirname(__file__), '../data',
+                    'examples/')
+    for filename in listdir(dir):
+        if isdir(join(dir, filename)):
+            examples.append(filename)
+    examples.sort()
+    return examples
 
 
 def load_water_network():
