@@ -16,6 +16,10 @@ from modules.load_data import (load_water_network, load_pollution_dynamics,
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
 
+
+networks = get_network_examples()
+network = networks[1]  # Ky2 default network
+
 # Labels for the play/pause button in paused and playing states respectively
 BUTTON_LABEL_PAUSED = '► Start Pollution'
 BUTTON_LABEL_PLAYING = '❚❚ Pause'
@@ -205,6 +209,12 @@ def update_speed(attrname, old, new):
         callback_id = curdoc().add_periodic_callback(step, animation_speed)
 
 
+# def switch_network(attrname, old, new):
+#     """Switch the water network to the selected"""
+#     node_type = network_select.value
+#     type_div.text = node_type_html(node_type, type_highlight_color)
+
+
 def plot_bounds(locations):
     # Get lists of node locations
     xs = [coord[0] for coord in locations.values()]
@@ -226,10 +236,10 @@ def plot_bounds(locations):
     return Range1d(x_lower, x_upper), Range1d(y_lower, y_upper)
 
 
-G, locations, all_base_demands = load_water_network()
+G, locations, all_base_demands = load_water_network(network)
 
 (pollution, injection_nodes, start_node, start_step, end_step, step_size,
- max_pol, min_pol) = load_pollution_dynamics()
+ max_pol, min_pol) = load_pollution_dynamics(network)
 
 # Create figure object
 x_bounds, y_bounds = plot_bounds(locations)
@@ -375,10 +385,10 @@ speed_dropdown.on_change('value', update_speed)
 timer = Div(text="")
 
 # Create a selector for the water network example
-networks = get_network_examples()
 network_select = Select(title="Choose Water Network",
-                        value=networks[0],
+                        value=network,
                         options=networks)
+# network_select.on_change('value', switch_network)
 
 # Create the layout for the graph and widgets
 layout = column(
@@ -416,4 +426,4 @@ update_highlights()
 update()
 
 curdoc().add_root(layout)
-curdoc().title = "Kentucky water distribution Ky2"
+curdoc().title = "Water Network Pollution"

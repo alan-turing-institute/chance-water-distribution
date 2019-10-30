@@ -17,10 +17,10 @@ def get_network_examples():
     return examples
 
 
-def load_water_network():
+def load_water_network(network):
     # load .inp file
     filename = join(dirname(__file__), '../data',
-                    'examples/ky2/ky2.inp')
+                    'examples/' + network + '/' + network + '.inp')
 
     # Create water network
     wn = wntr.network.WaterNetworkModel(filename)
@@ -43,8 +43,8 @@ def load_water_network():
             G.nodes[node]['elevation'] = 'N/A'
         try:
             base_demands = []
-            # TODO: For some reason this is a list, but in Ky2 data there is
-            # only ever a single base demand value
+            # TODO: For some reason this is a list, but in Kentucky 2
+            # data there is only ever a single base demand value
             for timeseries in wn.get_node(node).demand_timeseries_list:
                 base_demands.append(timeseries.base_value)
             base_demand = mean(base_demands)
@@ -83,11 +83,11 @@ def load_water_network():
     return G, locations, all_base_demands
 
 
-def load_pollution_dynamics():
+def load_pollution_dynamics(network):
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
     files = join(dirname(__file__), '../data',
-                    'examples/ky2/ky2')
+                    'examples/' + network + '/' + network + '')
     # Determine max and min pollution values and all node names
     max_pols = []
     min_pols = []
