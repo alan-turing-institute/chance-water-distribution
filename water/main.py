@@ -379,10 +379,10 @@ layout = column(
         column(
             pollution_history_select,
             pollution_history_node_div,
-            node_type_select,
-            type_div,
             pollution_location_select,
             pollution_location_div,
+            node_type_select,
+            type_div,
             node_size_slider,
             play_button,
             speed_dropdown,
