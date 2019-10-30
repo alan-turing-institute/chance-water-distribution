@@ -3,7 +3,7 @@ from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider, Span,
                           Button, ColorBar, LogTicker, ColumnDataSource)
-from bokeh.models.widgets import Dropdown, MultiSelect, Div, Select
+from bokeh.models.widgets import Dropdown, Div, Select
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -51,7 +51,7 @@ def update_highlights():
         })
 
     injection = pollution_location_select.value
-    nodes_to_highlight = pollution_history_multiselect.value
+    node_to_highlight = pollution_history_select.value
     type_highlight = node_type_dropdown.value
 
     outline_colors = []
@@ -61,7 +61,7 @@ def update_highlights():
             # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(highlight_width)
-        elif node in nodes_to_highlight:
+        elif node == node_to_highlight:
             # Color selected node bright green
             outline_colors.append(highlight_color)
             outline_widths.append(highlight_width)
@@ -79,11 +79,11 @@ def update_highlights():
 
 
 def update_pollution_history():
-    history_node = pollution_history_multiselect.value[0]
+    history_node = pollution_history_select.value
     history = pollution_history(scenario, history_node)
     pollution_history_source.data['time'] = history.index
     pollution_history_source.data['pollution_value'] = history.values
-    if pollution_history_node != 'None':
+    if history_node != 'None':
         pollution_history_plot.x_range.update(start=0,
                                               end=max(history.index))
         pollution_history_plot.y_range.update(start=0,
@@ -125,7 +125,7 @@ def update_node_highlight(attrname, old, new):
     the update highlights function."""
     update_highlights()
     update_pollution_history()
-    history_node = pollution_history_multiselect.value[0]
+    history_node = pollution_history_select.value
     pollution_history_node_div.text = pollution_history_html(history_node,
                                                              highlight_color)
 
@@ -320,10 +320,10 @@ play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
 # Menu to highlight nodes green and display pollution history
-pollution_history_multiselect = MultiSelect(title="Pollution History",
-                                            value=["None"],
-                                            options=['None']+list(G.nodes()))
-pollution_history_multiselect.on_change('value', update_node_highlight)
+pollution_history_select = Select(title="Pollution History",
+                                       value="None",
+                                       options=['None']+list(G.nodes()))
+pollution_history_select.on_change('value', update_node_highlight)
 
 # Create a div to show the name of pollution history node
 pollution_history_node_div = Div(text=pollution_history_html())
@@ -339,8 +339,8 @@ node_type_dropdown.on_change('value', update_node_type_highlight)
 
 # Dropdown menu to choose pollution start location
 pollution_location_select = Select(title="Pollution Injection Node",
-                                       value=injection_nodes[0],
-                                       options=injection_nodes)
+                                   value=injection_nodes[0],
+                                   options=injection_nodes)
 pollution_location_select.on_change('value', update_injection)
 
 # Create a div to show the name of pollution start node
@@ -372,7 +372,7 @@ timer = Div(text="")
 layout = column(
     row(
         column(
-            pollution_history_multiselect,
+            pollution_history_select,
             pollution_history_node_div,
             node_type_dropdown,
             pollution_location_select,
