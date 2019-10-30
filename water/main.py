@@ -321,8 +321,8 @@ play_button.on_click(animate)
 
 # Menu to highlight nodes green and display pollution history
 pollution_history_select = Select(title="Pollution History",
-                                       value="None",
-                                       options=['None']+list(G.nodes()))
+                                  value="None",
+                                  options=['None']+list(G.nodes()))
 pollution_history_select.on_change('value', update_node_highlight)
 
 # Create a div to show the name of pollution history node
