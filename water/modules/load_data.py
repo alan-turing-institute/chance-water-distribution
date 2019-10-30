@@ -1,5 +1,6 @@
 import wntr
 import numpy as np
+from os import listdir
 from os.path import dirname, join
 import pickle
 from statistics import mean
@@ -8,7 +9,7 @@ from statistics import mean
 def load_water_network():
     # load .inp file
     filename = join(dirname(__file__), '../data',
-                    'kentucky_water_distribution_networks/ky2.inp')
+                    'examples/ky2/ky2.inp')
 
     # Create water network
     wn = wntr.network.WaterNetworkModel(filename)
@@ -74,23 +75,30 @@ def load_water_network():
 def load_pollution_dynamics():
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
-    filename = join(dirname(__file__), '../data',
-                    'kentucky_water_distribution_networks/Ky2.pkl')
-    with open(filename, 'rb') as input_file:
-        pollution = pickle.load(input_file)
-
-    # Determine max and min pollution values and all scenario names
+    files = join(dirname(__file__), '../data',
+                    'examples/ky2/ky2')
+    # Determine max and min pollution values and all node names
     max_pols = []
     min_pols = []
     injection_nodes = []
-    for key, df in pollution.items():
-        if key != 'chemical_start_time':
-            injection_nodes.append(key)
-            v = df.values.ravel()
-            max_pols.append(np.max(v))
-            min_pols.append(np.min(v[v > 0]))
+    pollution = {}
+    for filename in listdir(files):
+        if filename.endswith(".pkl"):
+            node_name = filename.split(".pkl")[0]
+            injection_nodes.append(node_name)
+            with open(files + "/" + filename, 'rb') as input_file:
+                pollution_df = pickle.load(input_file)
+                pollution[node_name] = pollution_df
+                v = pollution_df.values.ravel()
+                max_pols.append(np.max(v))
+                try:  # below will error for a df where all values zero
+                    min_pols.append(np.min(v[v > 0]))
+                except ValueError:
+                    min_pols.append(0)
+
     max_pol = np.max(max_pols)
     min_pol = np.min(min_pols)
+    injection_nodes.sort()
 
     # Choose a default node for pollution injection
     start_node = injection_nodes[0]
