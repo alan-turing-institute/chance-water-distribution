@@ -96,12 +96,13 @@ def load_pollution_dynamics():
     start_node = pollution_nodes[0]
 
     # Determine the step numbers for the beginning and end of the pollution
-    # data. This assumes all pollution pollution_nodes are identical in time to the
-    # default starting node!
+    # data. This assumes all pollution pollution_nodes are identical in time
+    # to the default starting node!
     start = pollution[start_node].index.min()
     end = pollution[start_node].index.max()
 
     # Get the timstep size for the slider from the pollution df
     step = pollution[start_node].index[1] - pollution[start_node].index[0]
 
-    return pollution, pollution_nodes, start_node, start, end, step, max_pol, min_pol
+    return (pollution, pollution_nodes, start_node, start, end, step,
+            max_pol, min_pol)
