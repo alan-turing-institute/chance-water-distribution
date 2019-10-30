@@ -2,14 +2,15 @@ from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider, Span,
-                          Button, ColorBar, LogTicker, Title, ColumnDataSource)
-from bokeh.models.widgets import Dropdown
+                          Button, ColorBar, LogTicker, ColumnDataSource)
+from bokeh.models.widgets import Dropdown, Div, Select
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
 from collections import defaultdict
 import colorcet as cc
-import datetime
+from modules.html_formatter import (timer_html, pollution_history_html,
+                                    pollution_loaction_html)
 from modules.load_data import load_water_network, load_pollution_dynamics
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
@@ -21,19 +22,20 @@ BUTTON_LABEL_PLAYING = '❚❚ Pause'
 # Node scaling factor
 NODE_SCALING = 15
 
+# Color of injection node (Light blue)
+# (color used by injection button, update in CSS too on change)
+injection_color = "#34c3eb"
+
+# Color of selected node (bright green)
+# (color used by highlight button, update in CSS too on change)
+highlight_color = "#07db1c"
+
+# Color of selected node type
+type_highlight_color = "purple"
+
 
 def update_highlights():
     """Set the color and width for each node in the graph."""
-    # Color of injection node (Light blue)
-    # (color used by injection button, update in CSS too on change)
-    injection_color = "#34c3eb"
-
-    # Color of selected node (bright green)
-    # (color used by highlight button, update in CSS too on change)
-    highlight_color = "#07db1c"
-
-    # Color of selected node type
-    type_highlight_color = "purple"
 
     # Widths for edges of highlighted and normal nodes
     highlight_width = 3.0
@@ -48,8 +50,8 @@ def update_highlights():
         'Tank': 'green'
         })
 
-    injection = pollution_location_dropdown.value
-    node_highlight = node_highlight_dropdown.value
+    injection = pollution_location_select.value
+    node_to_highlight = pollution_history_select.value
     type_highlight = node_type_dropdown.value
 
     outline_colors = []
@@ -59,7 +61,7 @@ def update_highlights():
             # Color injection node the injection color regardless of its type
             outline_colors.append(injection_color)
             outline_widths.append(highlight_width)
-        elif node == node_highlight:
+        elif node == node_to_highlight:
             # Color selected node bright green
             outline_colors.append(highlight_color)
             outline_widths.append(highlight_width)
@@ -77,11 +79,11 @@ def update_highlights():
 
 
 def update_pollution_history():
-    pollution_history_node = node_highlight_dropdown.value
-    history = pollution_history(scenario, pollution_history_node)
+    history_node = pollution_history_select.value
+    history = pollution_history(scenario, history_node)
     pollution_history_source.data['time'] = history.index
     pollution_history_source.data['pollution_value'] = history.values
-    if pollution_history_node != 'None':
+    if history_node != 'None':
         pollution_history_plot.x_range.update(start=0,
                                               end=max(history.index))
         pollution_history_plot.y_range.update(start=0,
@@ -94,17 +96,14 @@ def update_pollution_history():
 def update():
     """Update the appearance of the pollution dynamics network, including node
     and edge colors"""
-    # Get injection node
-    start_node = pollution_location_dropdown.value
     timestep = slider.value
     # Get pollution for each node for the given injection site and timestep
     series = pollution_series(scenario, timestep)
 
     data = graph.node_renderer.data_source.data
 
-    # Set the status text
-    timer.text = ("Pollution Spread from " + start_node + ";  Time - "
-                  + str(datetime.timedelta(seconds=int(timestep))))
+    # Set the timer text
+    timer.text = timer_html(timestep)
     # Update node colours
     data['colors'] = list(series)
 
@@ -126,6 +125,9 @@ def update_node_highlight(attrname, old, new):
     the update highlights function."""
     update_highlights()
     update_pollution_history()
+    history_node = pollution_history_select.value
+    pollution_history_node_div.text = pollution_history_html(history_node,
+                                                             highlight_color)
 
 
 def update_node_type_highlight(attrname, old, new):
@@ -143,7 +145,7 @@ def update_slider(attrname, old, new):
 
 
 def update_injection(attrname, old, new):
-    """Pollution injection node drop down callback.
+    """Pollution injection node location drop down callback.
     The global variable scenario, which holds the dataframe of pollution
     dynamics is updated.
     As the injection site affects both the node highlights and pollution data
@@ -153,6 +155,9 @@ def update_injection(attrname, old, new):
     update_highlights()
     update_pollution_history()
     update()
+    injection_node = pollution_location_select.value
+    pollution_location_div.text = pollution_loaction_html(injection_node,
+                                                          injection_color)
 
 
 def update_node_size(attrname, old, new):
@@ -220,7 +225,7 @@ def plot_bounds(locations):
 
 G, locations, all_base_demands = load_water_network()
 
-(pollution, scenarios, start_node, start_step, end_step, step_size,
+(pollution, injection_nodes, start_node, start_step, end_step, step_size,
  max_pol, min_pol) = load_pollution_dynamics()
 
 # Create figure object
@@ -231,10 +236,6 @@ plot = figure(x_range=x_bounds, y_range=y_bounds, active_scroll='wheel_zoom',
 # Add map to plot
 tile_provider = get_provider(Vendors.CARTODBPOSITRON)
 plot.add_tile(tile_provider)
-
-# Add a timer label under plot
-timer = Title(text_font_size='35pt', text_color='grey')
-plot.add_layout(timer, 'below')
 
 # Create bokeh graph from the NetworkX object
 graph = from_networkx(G, locations)
@@ -318,11 +319,14 @@ slider.on_change('value', update_slider)
 play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
 play_button.on_click(animate)
 
-# Dropdown menu to highlight a particular node
-node_highlight_dropdown = Dropdown(label="Pollution History", value='None',
-                                   css_classes=['green_button'],
-                                   menu=['None']+list(G.nodes()))
-node_highlight_dropdown.on_change('value', update_node_highlight)
+# Menu to highlight nodes green and display pollution history
+pollution_history_select = Select(title="Pollution History",
+                                  value="None",
+                                  options=['None']+list(G.nodes()))
+pollution_history_select.on_change('value', update_node_highlight)
+
+# Create a div to show the name of pollution history node
+pollution_history_node_div = Div(text=pollution_history_html())
 
 # Dropdown menu to highlight a node type
 node_type_dropdown = Dropdown(label="Highlight Node Type", value='None',
@@ -334,11 +338,15 @@ node_type_dropdown = Dropdown(label="Highlight Node Type", value='None',
 node_type_dropdown.on_change('value', update_node_type_highlight)
 
 # Dropdown menu to choose pollution start location
-pollution_location_dropdown = Dropdown(label="Pollution Injection Node",
-                                       value=scenarios[0],
-                                       css_classes=['blue_button'],
-                                       menu=scenarios)
-pollution_location_dropdown.on_change('value', update_injection)
+pollution_location_select = Select(title="Pollution Injection Node",
+                                   value=injection_nodes[0],
+                                   options=injection_nodes)
+pollution_location_select.on_change('value', update_injection)
+
+# Create a div to show the name of pollution start node
+injection_node = pollution_location_select.value
+pol_location_html = pollution_loaction_html(injection_node, injection_color)
+pollution_location_div = Div(text=pol_location_html)
 
 # Dropdown menu to choose node size and demand weighting
 initial_node_size = 8
@@ -357,27 +365,36 @@ speed_dropdown = Dropdown(label="Animation Speed", value='Medium',
                           button_type="primary", menu=speed_menu)
 speed_dropdown.on_change('value', update_speed)
 
+# Create a div for the timer
+timer = Div(text="")
+
 # Create the layout for the graph and widgets
-layout = row(
-    column(
-        node_highlight_dropdown,
-        node_type_dropdown,
-        pollution_location_dropdown,
-        node_size_slider,
-        play_button,
-        speed_dropdown,
-        slider,
-        width=200, sizing_mode="stretch_height"
+layout = column(
+    row(
+        column(
+            pollution_history_select,
+            pollution_history_node_div,
+            node_type_dropdown,
+            pollution_location_select,
+            pollution_location_div,
+            node_size_slider,
+            play_button,
+            speed_dropdown,
+            slider,
+            timer,
+            width=200, sizing_mode="stretch_height"
+        ),
+        plot,
+        pollution_history_plot,
+        sizing_mode="stretch_both"
     ),
-    column(plot, sizing_mode="stretch_both"),
-    column(pollution_history_plot, sizing_mode="stretch_both"),
     sizing_mode="stretch_both"
 )
 
 # Initialise
 callback_id = None
 animation_speed = speeds[speed_dropdown.value]
-scenario = pollution_scenario(pollution, pollution_location_dropdown.value)
+scenario = pollution_scenario(pollution, pollution_location_select.value)
 history = pollution[start_node]['J-10']
 pollution_history_source.data['time'] = history.index
 pollution_history_source.data['pollution_value'] = history.values
