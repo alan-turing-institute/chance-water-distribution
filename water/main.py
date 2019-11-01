@@ -17,6 +17,11 @@ from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
 
 
+# Initialise
+callback_id = None
+animation_speed = 100  # Medium
+
+
 def switch_network(attrname, old, new):
     """Switch the water network to the selected"""
     network = network_select.value
@@ -419,8 +424,8 @@ def everything(network):
     )
 
     # Initialise
-    callback_id = None
-    animation_speed = speeds[speed_dropdown.value]
+    # callback_id = None
+    # animation_speed = speeds[speed_dropdown.value]
     scenario = pollution_scenario(pollution, pollution_location_select.value)
     initial_history_key = pollution[start_node].keys()[0]
     history = pollution[start_node][initial_history_key]
