@@ -414,6 +414,7 @@ def everything(network):
     update_highlights()
     update()
 
+    curdoc().clear()
     curdoc().add_root(layout)
     curdoc().title = "Water Network Pollution"
 
