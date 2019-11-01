@@ -205,7 +205,7 @@ def everything(network):
 
 
     def animate():
-        """Move the slider every 30 milliseconds on play button click"""
+        """Move the slider at animation_speed ms/s on play button click"""
         global callback_id
         global animation_speed
         if play_button.label == BUTTON_LABEL_PAUSED:
