@@ -419,7 +419,8 @@ layout = column(
 callback_id = None
 animation_speed = speeds[speed_dropdown.value]
 scenario = pollution_scenario(pollution, pollution_location_select.value)
-history = pollution[start_node]['J-10']
+initial_history_key = pollution[start_node].keys()[0]
+history = pollution[start_node][initial_history_key]
 pollution_history_source.data['time'] = history.index
 pollution_history_source.data['pollution_value'] = history.values
 update_highlights()
