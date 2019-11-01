@@ -32,8 +32,8 @@ def launch(network):
         highlight_width = 3.0
         normal_width = 2.0
 
-        # Create a default dictionary for node types, any node with a type not in
-        # the dictionary gets the default color
+        # Create a default dictionary for node types, any node with a type not
+        # in the dictionary gets the default color
         colors = defaultdict(lambda: "magenta")
         colors.update({
             'Junction': 'gray',
@@ -49,7 +49,7 @@ def launch(network):
         outline_widths = []
         for node in G.nodes():
             if node == injection:
-                # Color injection node the injection color regardless of its type
+                # Color injection node the injection color
                 outline_colors.append(injection_color)
                 outline_widths.append(highlight_width)
             elif node == node_to_highlight:
@@ -68,7 +68,6 @@ def launch(network):
         data = graph.node_renderer.data_source.data
         data['line_color'], data['line_width'] = outline_colors, outline_widths
 
-
     def update_pollution_history():
         history_node = pollution_history_select.value
         history = pollution_history(scenario, history_node)
@@ -83,10 +82,9 @@ def launch(network):
             pollution_history_plot.x_range.update(start=0, end=0)
             pollution_history_plot.y_range.update(start=0, end=0)
 
-
     def update():
-        """Update the appearance of the pollution dynamics network, including node
-        and edge colors"""
+        """Update the appearance of the pollution dynamics network,
+        including node and edge colors"""
         timestep = slider.value
         # Get pollution for each node for the given injection site and timestep
         series = pollution_series(scenario, timestep)
@@ -109,40 +107,37 @@ def launch(network):
         # Update timestep span on pollution history plot
         timestep_span.update(location=timestep)
 
-
     def update_node_highlight(attrname, old, new):
         """Highlight node drop down callback.
-        As node colours depend on many widget values, this callback simply calls
-        the update highlights function."""
+        As node colours depend on many widget values, this callback
+        simply calls the update highlights function."""
         update_highlights()
         update_pollution_history()
         history_node = pollution_history_select.value
-        pollution_history_node_div.text = pollution_history_html(history_node,
-                                                                 highlight_color)
-
+        html = pollution_history_html(history_node, highlight_color)
+        pollution_history_node_div.text = html
 
     def update_node_type_highlight(attrname, old, new):
         """Highlight node type drop down callback.
-        As node colours depend on many widget values, this callback simply calls
-        the update highlights function."""
+        As node colours depend on many widget values, this callback
+        simply calls the update highlights function."""
         update_highlights()
         node_type = node_type_select.value
         type_div.text = node_type_html(node_type, type_highlight_color)
 
-
     def update_slider(attrname, old, new):
         """Time slider callback.
-        As node colours depend on many widget values, this callback simply calls
-        the update function."""
+        As node colours depend on many widget values, this callback
+        simply calls the update function."""
         update()
-
 
     def update_injection(attrname, old, new):
         """Pollution injection node location drop down callback.
         The global variable scenario, which holds the dataframe of pollution
         dynamics is updated.
-        As the injection site affects both the node highlights and pollution data
-        this callback calls both the update highlights and the update functions"""
+        As the injection site affects both the node highlights and
+        pollution data, his callback calls both the update highlights
+        and the update functions"""
         global scenario
         scenario = pollution_scenario(pollution, new)
         update_highlights()
@@ -152,14 +147,12 @@ def launch(network):
         pollution_location_div.text = pollution_location_html(injection_node,
                                                               injection_color)
 
-
     def update_node_size(attrname, old, new):
         """Node size slider callback.
         Updates the base size of the nodes in the graph"""
         graph.node_renderer.data_source.data['size'] = (
             new + all_base_demands*NODE_SCALING
             )
-
 
     def step():
         """Move the slider by one step"""
@@ -168,9 +161,8 @@ def launch(network):
             timestep = start_step
         slider.value = timestep
 
-
     def animate():
-        """Move the slider at animation_speed ms/s on play button click"""
+        """Move the slider at animation_speed ms/frame on play button click"""
         global callback_id
         global animation_speed
         if play_button.label == BUTTON_LABEL_PAUSED:
@@ -179,7 +171,6 @@ def launch(network):
         elif play_button.label == BUTTON_LABEL_PLAYING:
             play_button.label = BUTTON_LABEL_PAUSED
             curdoc().remove_periodic_callback(callback_id)
-
 
     def update_speed(attrname, old, new):
         """Adjust the animation speed"""
@@ -193,7 +184,6 @@ def launch(network):
         if play_button.label == BUTTON_LABEL_PLAYING:
             curdoc().remove_periodic_callback(callback_id)
             callback_id = curdoc().add_periodic_callback(step, animation_speed)
-
 
     def plot_bounds(locations):
         # Get lists of node locations
@@ -215,7 +205,6 @@ def launch(network):
 
         return Range1d(x_lower, x_upper), Range1d(y_lower, y_upper)
 
-
     G, locations, all_base_demands = load_water_network(network)
 
     (pollution, injection_nodes, start_node, start_step, end_step, step_size,
@@ -223,8 +212,11 @@ def launch(network):
 
     # Create figure object
     x_bounds, y_bounds = plot_bounds(locations)
-    plot = figure(x_range=x_bounds, y_range=y_bounds, active_scroll='wheel_zoom',
-                  x_axis_type="mercator", y_axis_type="mercator")
+    plot = figure(x_range=x_bounds,
+                  y_range=y_bounds,
+                  active_scroll='wheel_zoom',
+                  x_axis_type="mercator",
+                  y_axis_type="mercator")
 
     # Add map to plot
     tile_provider = get_provider(Vendors.CARTODBPOSITRON)
@@ -236,8 +228,9 @@ def launch(network):
     # Define color map for pollution
     color_mapper = log_cmap('colors', cc.CET_L18, min_pol, max_pol)
 
-    # Create nodes, set the node colors by pollution level and size by base demand
-    # Node outline color and thickness is different for the pollution start node
+    # Create nodes, set the node colors by pollution level and size
+    # by base demand. Node outline color and thickness is different
+    # for the pollution start node
 
     # Create node glyphs
     graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
@@ -246,7 +239,9 @@ def launch(network):
 
     # Add color bar as legend
     color_bar = ColorBar(color_mapper=color_mapper['transform'],
-                         ticker=LogTicker(), label_standoff=12, location=(0, 0))
+                         ticker=LogTicker(),
+                         label_standoff=12,
+                         location=(0, 0))
     plot.add_layout(color_bar, 'right')
 
     # Create edges
@@ -254,7 +249,8 @@ def launch(network):
     graph.edge_renderer.glyph = MultiLine(line_width=edge_width,
                                           line_color=color_mapper)
 
-    # Create 'shadow' of the network edges so that they stand out against the map
+    # Create 'shadow' of the network edges so that they stand out
+    # against the map
     graph_shadow = from_networkx(G, locations)
     shadow_width = edge_width*1.5
     graph_shadow.edge_renderer.glyph = MultiLine(line_width=shadow_width,
@@ -262,7 +258,8 @@ def launch(network):
 
     # Green hover for both nodes and edges
     hover_color = '#abdda4'
-    graph.node_renderer.hover_glyph = Circle(size="size", fill_color=hover_color,
+    graph.node_renderer.hover_glyph = Circle(size="size",
+                                             fill_color=hover_color,
                                              line_color="line_color",
                                              line_width="line_width")
     graph.edge_renderer.hover_glyph = MultiLine(line_color=hover_color,
@@ -298,7 +295,8 @@ def launch(network):
         active_scroll='wheel_zoom'
         )
     pollution_history_plot.line('time', 'pollution_value',
-                                source=pollution_history_source, line_width=2.0)
+                                source=pollution_history_source,
+                                line_width=2.0)
     timestep_span = Span(location=0, dimension='height', line_dash='dashed',
                          line_width=2.0)
     pollution_history_plot.add_layout(timestep_span)
@@ -341,8 +339,8 @@ def launch(network):
 
     # Create a div to show the name of pollution start node
     injection_node = pollution_location_select.value
-    pol_location_html = pollution_location_html(injection_node, injection_color)
-    pollution_location_div = Div(text=pol_location_html)
+    pol_html = pollution_location_html(injection_node, injection_color)
+    pollution_location_div = Div(text=pol_html)
 
     # Dropdown menu to choose node size and demand weighting
     initial_node_size = 8
@@ -354,7 +352,8 @@ def launch(network):
     node_size_slider.on_change('value', update_node_size)
 
     # Speed selection dropdown widget
-    # Animation speeds and speed drop down entries. 'Speeds' are in ms per frame
+    # Animation speeds and speed drop down entries.
+    # 'Speeds' are in ms per frame
     speed_menu = ['Slow', 'Medium', 'Fast']
     speeds = dict(zip(speed_menu, [250, 100, 30]))
     speed_dropdown = Dropdown(label="Animation Speed", value='Medium',
