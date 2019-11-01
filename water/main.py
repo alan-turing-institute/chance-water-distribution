@@ -15,11 +15,13 @@ from modules.load_data import (load_water_network, load_pollution_dynamics,
                                get_network_examples)
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
+import pandas as pd
 
 
 # Initialise
 callback_id = None
 animation_speed = 100  # Medium
+scenario = pd.DataFrame()
 
 
 def switch_network(attrname, old, new):
@@ -40,6 +42,8 @@ curdoc().add_root(row(network_select))
 curdoc().title = "Water Network Pollution"
 
 def everything(network):
+
+    global scenario
 
     # Labels for the play/pause button in paused and playing states respectively
     BUTTON_LABEL_PAUSED = '► Start Pollution'
@@ -424,8 +428,6 @@ def everything(network):
     )
 
     # Initialise
-    # callback_id = None
-    # animation_speed = speeds[speed_dropdown.value]
     scenario = pollution_scenario(pollution, pollution_location_select.value)
     initial_history_key = pollution[start_node].keys()[0]
     history = pollution[start_node][initial_history_key]
