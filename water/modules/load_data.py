@@ -9,7 +9,7 @@ from statistics import mean
 def get_network_examples():
     examples = []
     dir = join(dirname(__file__), '../data',
-                    'examples/')
+               'examples/')
     for filename in listdir(dir):
         if isdir(join(dir, filename)):
             examples.append(filename)
@@ -87,7 +87,7 @@ def load_pollution_dynamics(network):
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
     files = join(dirname(__file__), '../data',
-                    'examples/' + network + '/' + network + '')
+                 'examples/' + network + '/' + network + '')
     # Determine max and min pollution values and all node names
     max_pols = []
     min_pols = []
