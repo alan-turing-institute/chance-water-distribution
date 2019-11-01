@@ -22,25 +22,6 @@ def everything(network):
 
     global scenario
 
-    # Labels for the play/pause button in paused and playing states respectively
-    BUTTON_LABEL_PAUSED = '► Start Pollution'
-    BUTTON_LABEL_PLAYING = '❚❚ Pause'
-
-    # Node scaling factor
-    NODE_SCALING = 15
-
-    # Color of injection node (Light blue)
-    # (color used by injection button, update in CSS too on change)
-    injection_color = "#34c3eb"
-
-    # Color of selected node (bright green)
-    # (color used by highlight button, update in CSS too on change)
-    highlight_color = "#07db1c"
-
-    # Color of selected node type
-    type_highlight_color = "purple"
-
-
     def update_highlights():
         """Set the color and width for each node in the graph."""
 
@@ -419,17 +400,34 @@ def everything(network):
     curdoc().title = "Water Network Pollution"
 
 
-# Initialise
-callback_id = None
-animation_speed = 100  # Medium
-scenario = pd.DataFrame()
-
-
 def switch_network(attrname, old, new):
     """Switch the water network to the selected"""
     network = network_select.value
     everything(network)
 
+
+# Initialise
+callback_id = None
+animation_speed = 100  # Medium
+scenario = pd.DataFrame()
+
+# Labels for the play/pause button in paused and playing states respectively
+BUTTON_LABEL_PAUSED = '► Start Pollution'
+BUTTON_LABEL_PLAYING = '❚❚ Pause'
+
+# Node scaling factor
+NODE_SCALING = 15
+
+# Color of injection node (Light blue)
+# (color used by injection button, update in CSS too on change)
+injection_color = "#34c3eb"
+
+# Color of selected node (bright green)
+# (color used by highlight button, update in CSS too on change)
+highlight_color = "#07db1c"
+
+# Color of selected node type
+type_highlight_color = "purple"
 
 # Load the network dirnames
 networks = get_network_examples()
