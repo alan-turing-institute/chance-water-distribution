@@ -18,29 +18,6 @@ from modules.pollution import (pollution_series, pollution_history,
 import pandas as pd
 
 
-# Initialise
-callback_id = None
-animation_speed = 100  # Medium
-scenario = pd.DataFrame()
-
-
-def switch_network(attrname, old, new):
-    """Switch the water network to the selected"""
-    network = network_select.value
-    everything(network)
-
-
-networks = get_network_examples()
-
-# Create a selector for the water network example
-network_select = Select(title="Choose Water Network",
-                        value="None",
-                        options=["None"] + networks)
-network_select.on_change('value', switch_network)
-
-curdoc().add_root(row(network_select))
-curdoc().title = "Water Network Pollution"
-
 def everything(network):
 
     global scenario
@@ -407,6 +384,7 @@ def everything(network):
     layout = column(
         row(
             column(
+                network_select,
                 pollution_history_select,
                 pollution_history_node_div,
                 pollution_location_select,
@@ -438,3 +416,28 @@ def everything(network):
 
     curdoc().add_root(layout)
     curdoc().title = "Water Network Pollution"
+
+
+# Initialise
+callback_id = None
+animation_speed = 100  # Medium
+scenario = pd.DataFrame()
+
+
+def switch_network(attrname, old, new):
+    """Switch the water network to the selected"""
+    network = network_select.value
+    everything(network)
+
+
+# Load the network dirnames
+networks = get_network_examples()
+network = networks[0]
+
+# Create a selector for the water network example
+network_select = Select(title="Choose Water Network",
+                        value=network,
+                        options=networks)
+network_select.on_change('value', switch_network)
+
+everything(network)
