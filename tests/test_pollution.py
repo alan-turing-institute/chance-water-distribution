@@ -5,8 +5,8 @@ from water.modules.pollution import pollution_series, pollution_scenario
 def test_pollution_series(pollution_data):
     pollution = pollution_data
     scenario = pollution_scenario(pollution, 'J-1')
-    assert (pollution_series(scenario, 42330)[0]
-            == pytest.approx(6.503378868103027))
+    assert (pollution_series(scenario, 77700)[-1]
+            == pytest.approx(5.355515))
 
 
 def test_pollution_series_timestep_doesnt_exist(pollution_data):
