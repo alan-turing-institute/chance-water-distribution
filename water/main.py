@@ -10,7 +10,7 @@ from bokeh.transform import log_cmap
 from collections import defaultdict
 import colorcet as cc
 from modules.html_formatter import (timer_html, pollution_history_html,
-                                    pollution_loaction_html, node_type_html)
+                                    pollution_location_html, node_type_html)
 from modules.load_data import (load_water_network, load_pollution_dynamics,
                                get_network_examples)
 from modules.pollution import (pollution_series, pollution_history,
@@ -184,7 +184,7 @@ def everything(network):
         update_pollution_history()
         update()
         injection_node = pollution_location_select.value
-        pollution_location_div.text = pollution_loaction_html(injection_node,
+        pollution_location_div.text = pollution_location_html(injection_node,
                                                               injection_color)
 
 
@@ -376,7 +376,7 @@ def everything(network):
 
     # Create a div to show the name of pollution start node
     injection_node = pollution_location_select.value
-    pol_location_html = pollution_loaction_html(injection_node, injection_color)
+    pol_location_html = pollution_location_html(injection_node, injection_color)
     pollution_location_div = Div(text=pol_location_html)
 
     # Dropdown menu to choose node size and demand weighting

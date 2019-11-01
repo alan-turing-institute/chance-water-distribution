@@ -18,7 +18,7 @@ def pollution_history_html(history_node="None", highlight_color="black"):
     return pollution_history_html
 
 
-def pollution_loaction_html(injection_node, injection_color):
+def pollution_location_html(injection_node, injection_color):
     pollution_location_html = "<p>Selection: <b style='color:"
     pollution_location_html += injection_color + "'>"
     pollution_location_html += injection_node
