@@ -18,7 +18,10 @@ from modules.pollution import (pollution_series, pollution_history,
 import pandas as pd
 
 
-def everything(network):
+def launch(network):
+    """Set up the bokeh server app for a particular network.
+    Takes as input a string corresponding to the name of the
+    data dir under water/data/examples/ """
 
     global scenario
 
@@ -403,7 +406,7 @@ def everything(network):
 def switch_network(attrname, old, new):
     """Switch the water network to the selected"""
     network = network_select.value
-    everything(network)
+    launch(network)
 
 
 # Initialise
@@ -439,4 +442,4 @@ network_select = Select(title="Choose Water Network",
                         options=networks)
 network_select.on_change('value', switch_network)
 
-everything(network)
+launch(network)
