@@ -404,7 +404,7 @@ def launch(network):
 
 def switch_network(attrname, old, new):
     """Switch the water network to the selected"""
-    network = network_select.value
+    network = new
     launch(network)
 
 
