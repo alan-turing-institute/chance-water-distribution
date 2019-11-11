@@ -74,10 +74,13 @@ def launch(network):
         pollution_history_source.data['time'] = history.index
         pollution_history_source.data['pollution_value'] = history.values
         if history_node != 'None':
+            y_end = max(history.values)
+            if y_end == 0:  # Bokeh can't render the plot correctly
+                y_end = 1   # when the max value is 0
             pollution_history_plot.x_range.update(start=0,
                                                   end=max(history.index))
             pollution_history_plot.y_range.update(start=0,
-                                                  end=max(history.values))
+                                                  end=y_end)
         else:
             pollution_history_plot.x_range.update(start=0, end=0)
             pollution_history_plot.y_range.update(start=0, end=0)
