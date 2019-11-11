@@ -113,9 +113,24 @@ def launch(network):
         simply calls the update highlights function."""
         update_highlights()
         update_pollution_history()
-        history_node = pollution_history_select.value
+        history_node = new
         html = pollution_history_html(history_node, highlight_color)
         pollution_history_node_div.text = html
+
+        if old == "None" and new != "None":
+            # Include history plot in layout for the graph and widgets
+            new_layout_row = row(
+                menu_bar,
+                plot,
+                pollution_history_plot,
+                sizing_mode="stretch_both"
+            )
+            layout.children[0] = new_layout_row
+
+        if old != "None" and new == "None":
+            # Remove history plot from layout for the graph and widgets
+            layout.children[0] = layout_row
+
 
     def update_node_type_highlight(attrname, old, new):
         """Highlight node type drop down callback.
@@ -363,28 +378,33 @@ def launch(network):
     # Create a div for the timer
     timer = Div(text="")
 
+    # Create menu bar
+    menu_bar = column(
+        network_select,
+        pollution_history_select,
+        pollution_history_node_div,
+        pollution_location_select,
+        pollution_location_div,
+        node_type_select,
+        type_div,
+        node_size_slider,
+        play_button,
+        speed_dropdown,
+        slider,
+        timer,
+        width=200, sizing_mode="stretch_height"
+    )
+
+    # Add the plots to a row, intially excluding pollution_history_plot
+    layout_row = row(
+        menu_bar,
+        plot,
+        sizing_mode="stretch_both"
+    )
+
     # Create the layout for the graph and widgets
     layout = column(
-        row(
-            column(
-                network_select,
-                pollution_history_select,
-                pollution_history_node_div,
-                pollution_location_select,
-                pollution_location_div,
-                node_type_select,
-                type_div,
-                node_size_slider,
-                play_button,
-                speed_dropdown,
-                slider,
-                timer,
-                width=200, sizing_mode="stretch_height"
-            ),
-            plot,
-            pollution_history_plot,
-            sizing_mode="stretch_both"
-        ),
+        layout_row,
         sizing_mode="stretch_both"
     )
 
