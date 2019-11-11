@@ -131,7 +131,6 @@ def launch(network):
             # Remove history plot from layout for the graph and widgets
             layout.children[0] = layout_row
 
-
     def update_node_type_highlight(attrname, old, new):
         """Highlight node type drop down callback.
         As node colours depend on many widget values, this callback
@@ -453,7 +452,7 @@ type_highlight_color = "purple"
 
 # Load the network dirnames
 networks = get_network_examples()
-network = networks[0]
+network = networks[1]  # ky2
 
 # Create a selector for the water network example
 network_select = Select(title="Choose Water Network",
