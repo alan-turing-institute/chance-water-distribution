@@ -409,8 +409,8 @@ def launch(network):
 
     # Initialise
     scenario = pollution_scenario(pollution, pollution_location_select.value)
-    initial_history_key = pollution[start_node].keys()[0]
-    history = pollution[start_node][initial_history_key]
+    history_node = pollution[start_node].keys()[0]
+    history = pollution_history(scenario, history_node)
     pollution_history_source.data['time'] = history.index
     pollution_history_source.data['pollution_value'] = history.values
     update_highlights()
