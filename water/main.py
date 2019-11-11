@@ -15,12 +15,15 @@ from modules.load_data import (load_water_network, load_pollution_dynamics,
                                get_network_examples)
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
+import pandas as pd
 
 
 def launch(network):
     """Set up the bokeh server app for a particular network.
     Takes as input a string corresponding to the name of the
     data dir under water/data/examples/ """
+
+    global scenario
 
     def update_highlights():
         """Set the color and width for each node in the graph."""
@@ -408,6 +411,7 @@ def switch_network(attrname, old, new):
 # Initialise
 callback_id = None
 animation_speed = 100  # Medium
+scenario = pd.DataFrame()
 
 # Labels for the play/pause button in paused and playing states respectively
 BUTTON_LABEL_PAUSED = '► Start Pollution'
