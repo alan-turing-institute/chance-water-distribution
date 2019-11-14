@@ -10,3 +10,6 @@
 [submodule "water/data/examples/ky14"]
 	path = water/data/examples/ky14
 	url = git@github.com:alan-turing-institute/chance-water-distribution-ky14.git
+[submodule "water/data/examples/ky2"]
+	path = water/data/examples/ky2
+	url = git@github.com:alan-turing-institute/chance-water-distribution-ky2.git
