@@ -5,7 +5,7 @@ from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
                           Slider, Span, Button, ColorBar, LogTicker,
                           ColumnDataSource)
-from bokeh.models.widgets import Dropdown, Div, Select
+from bokeh.models.widgets import Dropdown, Div, Select, RadioGroup
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -139,14 +139,17 @@ def launch(network):
         # It's possible to click multiple nodes when they overlap,
         # but we only want one
         first_clicked_node_int = nodes_clicked_ints[0]
-        history_node = "None"
+        clicked_node = "None"
         node_count = -1
         for node in G.nodes():
             node_count += 1
             if node_count == first_clicked_node_int:
-                history_node = node
+                clicked_node = node
                 break
-        pollution_history_select.value = history_node
+        if what_click_does.active == 0:
+            pollution_history_select.value = clicked_node
+        if what_click_does.active == 1:
+            pollution_location_select.value = clicked_node
 
     def update_node_type_highlight(attrname, old, new):
         """Highlight node type drop down callback.
@@ -403,9 +406,16 @@ def launch(network):
     # Create a div for the timer
     timer = Div(text="")
 
+    # Create a radio button to choose what clicking a node does
+    what_click_does = RadioGroup(
+        labels=["Clicks Choose Pollution History",
+                "Clicks Choose Pollution Injection"],
+        active=0)
+
     # Create menu bar
     menu_bar = column(
         network_select,
+        what_click_does,
         pollution_history_select,
         pollution_history_node_div,
         pollution_location_select,
@@ -417,7 +427,7 @@ def launch(network):
         speed_dropdown,
         slider,
         timer,
-        width=200, sizing_mode="stretch_height"
+        width=220, sizing_mode="scale_height"
     )
 
     # Add the plots to a row, intially excluding pollution_history_plot
