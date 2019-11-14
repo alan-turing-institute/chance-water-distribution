@@ -1,8 +1,10 @@
+from bokeh.events import Tap
 from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider, Span,
-                          Button, ColorBar, LogTicker, ColumnDataSource)
+from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
+                          Slider, Span, Button, ColorBar, LogTicker,
+                          ColumnDataSource)
 from bokeh.models.widgets import Dropdown, Div, Select
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -134,6 +136,20 @@ def launch(network):
             # Remove history plot from layout for the graph and widgets
             layout.children[0] = layout_row
 
+    def update_click_node(event):
+        nodes_clicked_ints = graph.node_renderer.data_source.selected.indices
+        # It's possible to click multiple nodes when they overlap,
+        # but we only want one
+        first_clicked_node_int = nodes_clicked_ints[0]
+        history_node = "None"
+        node_count = -1
+        for node in G.nodes():
+            node_count += 1
+            if node_count == first_clicked_node_int:
+                history_node = node
+                break
+        pollution_history_select.value = history_node
+
     def update_node_type_highlight(attrname, old, new):
         """Highlight node type drop down callback.
         As node colours depend on many widget values, this callback
@@ -250,9 +266,14 @@ def launch(network):
     # for the pollution start node
 
     # Create node glyphs
-    graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
+    graph.node_renderer.glyph = Circle(size="size",
+                                       fill_color=color_mapper,
                                        line_color="line_color",
                                        line_width="line_width")
+    graph.node_renderer.nonselection_glyph = Circle(size="size",
+                                                    fill_color=color_mapper,
+                                                    line_color="line_color",
+                                                    line_width="line_width")
 
     # Add color bar as legend
     color_bar = ColorBar(color_mapper=color_mapper['transform'],
@@ -300,7 +321,11 @@ def launch(network):
         ("Base Demand", "@demand"),
         ("Pollution Level", "@colors")
     ]
-    plot.add_tools(HoverTool(tooltips=TOOLTIPS))
+    plot.add_tools(HoverTool(tooltips=TOOLTIPS), TapTool())
+
+    # Set clicking a node to choose pollution history
+    taptool = plot.select(type=TapTool)
+    plot.on_event(Tap, update_click_node)
 
     # Pollution history plot
     pollution_history_source = ColumnDataSource(
