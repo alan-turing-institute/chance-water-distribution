@@ -325,7 +325,7 @@ def launch(network):
     plot.add_tools(HoverTool(tooltips=TOOLTIPS), TapTool())
 
     # Set clicking a node to choose pollution history
-    taptool = plot.select(type=TapTool)
+    plot.select(type=TapTool)
     plot.on_event(Tap, update_click_node)
 
     # Pollution history plot
