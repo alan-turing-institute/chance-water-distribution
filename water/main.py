@@ -399,7 +399,7 @@ def launch(network):
     # 'Speeds' are in ms per frame
     speed_menu = ['Slow', 'Medium', 'Fast']
     speeds = dict(zip(speed_menu, [250, 100, 30]))
-    speed_dropdown = Dropdown(label="Animation Speed", value='Medium',
+    speed_dropdown = Dropdown(label="Speed", value='Medium',
                               button_type="primary", menu=speed_menu)
     speed_dropdown.on_change('value', update_speed)
 
@@ -423,8 +423,8 @@ def launch(network):
         row(node_type_select, type_div,
             sizing_mode="scale_height"),
         node_size_slider,
-        play_button,
-        speed_dropdown,
+        row(play_button, speed_dropdown,
+            sizing_mode="scale_height"),
         slider,
         timer,
         width=220, sizing_mode="stretch_height"
