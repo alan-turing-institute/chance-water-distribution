@@ -1,8 +1,5 @@
-Kentucky water distribution networks
-=====
+# Kentucky Water Distribution Networks
 
-ky2: http://www.uky.edu/WDST/PDFs/KY02.pdf
+This directory contains a set of example water networks with pollution scenarios produced by simulation with [WNTR](https://github.com/USEPA/WNTR).
 
-Ky2.pkl contains pollution data: the injection starts at t = 3600 seconds and lasts for 1 hour (t = 7200 seconds).
-
-ky4: http://www.uky.edu/WDST/PDFs/KY4.pdf
+The example networks are taken from the [Water Distribution System Research Database](http://www.uky.edu/WDST/database.html) and use the same naming convention.
