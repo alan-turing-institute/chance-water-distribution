@@ -416,10 +416,10 @@ def launch(network):
     menu_bar = column(
         network_select,
         what_click_does,
-        pollution_history_select,
-        pollution_history_node_div,
-        pollution_location_select,
-        pollution_location_div,
+        row(pollution_history_select, pollution_history_node_div,
+        sizing_mode="scale_height"),
+        row(pollution_location_select, pollution_location_div,
+        sizing_mode="scale_height"),
         node_type_select,
         type_div,
         node_size_slider,
@@ -427,7 +427,7 @@ def launch(network):
         speed_dropdown,
         slider,
         timer,
-        width=220, sizing_mode="scale_height"
+        width=220, sizing_mode="stretch_height"
     )
 
     # Add the plots to a row, intially excluding pollution_history_plot
