@@ -112,10 +112,8 @@ def launch(network):
         # Update timestep span on pollution history plot
         timestep_span.update(location=timestep)
 
-    def update_node_highlight(attrname, old, new):
-        """Highlight node drop down callback.
-        As node colours depend on many widget values, this callback
-        simply calls the update highlights function."""
+    def update_pollution_history_node(attrname, old, new):
+        """Select node to show pollution history for and highlight it green."""
         update_highlights()
         update_pollution_history()
         history_node = new
@@ -356,7 +354,7 @@ def launch(network):
     pollution_history_select = Select(title="Pollution History",
                                       value="None",
                                       options=['None']+list(G.nodes()))
-    pollution_history_select.on_change('value', update_node_highlight)
+    pollution_history_select.on_change('value', update_pollution_history_node)
 
     # Create a div to show the name of pollution history node
     pollution_history_node_div = Div(text=pollution_history_html())
