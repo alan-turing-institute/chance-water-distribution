@@ -29,7 +29,7 @@ def pollution_location_html(injection_node, injection_color):
 def node_type_html(type="None", color="black"):
     if type == "None":
         color = "black"
-    node_type_html = "<p>Selection: <b style='color:"
+    node_type_html = "<p><b style='color:"
     node_type_html += color + "'>"
     node_type_html += type
     node_type_html += "</b></p>"
