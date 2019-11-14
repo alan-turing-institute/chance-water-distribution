@@ -354,7 +354,7 @@ def launch(network):
     play_button.on_click(animate)
 
     # Menu to highlight nodes green and display pollution history
-    pollution_history_select = Select(title="Pollution History",
+    pollution_history_select = Select(title="Pollution History Node",
                                       value="None",
                                       options=['None']+list(G.nodes()))
     pollution_history_select.on_change('value', update_pollution_history_node)
