@@ -36,6 +36,7 @@ Bokeh App
 
 *Tested with Python 3.6 and 3.7*
 
-1. Clone the repository
-2. Install the requirements in `requirements.txt`
-3. Run bokeh server from top dir of the repo with `bokeh serve --show water`
+1. Clone the repository: `git clone https://github.com/alan-turing-institute/chance-water-distribution`
+2. Install the python requirements: `pip install -r requirements.txt`
+3. Download data modules: `git submodule update --init --recursive`
+4. Run bokeh server from top dir of the repo: `bokeh serve --show water`
