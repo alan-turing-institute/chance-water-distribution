@@ -135,6 +135,11 @@ def launch(network):
             layout.children[0] = layout_row
 
     def update_click_node(event):
+        """Tap tool event action.
+        This function will either change the selected pollution history node,
+        or pollution injection node depending on the value of the
+        'what_click_does' radio group.
+        """
         nodes_clicked_ints = graph.node_renderer.data_source.selected.indices
         # It's possible to click multiple nodes when they overlap, but we only
         # want one
