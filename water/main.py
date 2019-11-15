@@ -1,9 +1,11 @@
+from bokeh.events import Tap
 from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
-from bokeh.models import (Range1d, MultiLine, Circle, HoverTool, Slider, Span,
-                          Button, ColorBar, LogTicker, ColumnDataSource)
-from bokeh.models.widgets import Dropdown, Div, Select
+from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
+                          Slider, Span, Button, ColorBar, LogTicker,
+                          ColumnDataSource)
+from bokeh.models.widgets import Dropdown, Div, Select, RadioGroup
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -110,10 +112,8 @@ def launch(network):
         # Update timestep span on pollution history plot
         timestep_span.update(location=timestep)
 
-    def update_node_highlight(attrname, old, new):
-        """Highlight node drop down callback.
-        As node colours depend on many widget values, this callback
-        simply calls the update highlights function."""
+    def update_pollution_history_node(attrname, old, new):
+        """Select node to show pollution history for and highlight it green."""
         update_highlights()
         update_pollution_history()
         history_node = new
@@ -133,6 +133,22 @@ def launch(network):
         if old != "None" and new == "None":
             # Remove history plot from layout for the graph and widgets
             layout.children[0] = layout_row
+
+    def update_click_node(event):
+        """Tap tool event action.
+        This function will either change the selected pollution history node,
+        or pollution injection node depending on the value of the
+        'what_click_does' radio group.
+        """
+        nodes_clicked_ints = graph.node_renderer.data_source.selected.indices
+        # It's possible to click multiple nodes when they overlap, but we only
+        # want one
+        first_clicked_node_int = nodes_clicked_ints[0]
+        clicked_node = list(G.nodes())[first_clicked_node_int]
+        if what_click_does.active == click_options['Pollution History']:
+            pollution_history_select.value = clicked_node
+        if what_click_does.active == click_options['Pollution Injection']:
+            pollution_location_select.value = clicked_node
 
     def update_node_type_highlight(attrname, old, new):
         """Highlight node type drop down callback.
@@ -250,9 +266,14 @@ def launch(network):
     # for the pollution start node
 
     # Create node glyphs
-    graph.node_renderer.glyph = Circle(size="size", fill_color=color_mapper,
+    graph.node_renderer.glyph = Circle(size="size",
+                                       fill_color=color_mapper,
                                        line_color="line_color",
                                        line_width="line_width")
+    graph.node_renderer.nonselection_glyph = Circle(size="size",
+                                                    fill_color=color_mapper,
+                                                    line_color="line_color",
+                                                    line_width="line_width")
 
     # Add color bar as legend
     color_bar = ColorBar(color_mapper=color_mapper['transform'],
@@ -300,7 +321,11 @@ def launch(network):
         ("Base Demand", "@demand"),
         ("Pollution Level", "@colors")
     ]
-    plot.add_tools(HoverTool(tooltips=TOOLTIPS))
+    plot.add_tools(HoverTool(tooltips=TOOLTIPS), TapTool())
+
+    # Set clicking a node to choose pollution history
+    plot.select(type=TapTool)
+    plot.on_event(Tap, update_click_node)
 
     # Pollution history plot
     pollution_history_source = ColumnDataSource(
@@ -328,10 +353,10 @@ def launch(network):
     play_button.on_click(animate)
 
     # Menu to highlight nodes green and display pollution history
-    pollution_history_select = Select(title="Pollution History",
+    pollution_history_select = Select(title="Pollution History Node",
                                       value="None",
                                       options=['None']+list(G.nodes()))
-    pollution_history_select.on_change('value', update_node_highlight)
+    pollution_history_select.on_change('value', update_pollution_history_node)
 
     # Create a div to show the name of pollution history node
     pollution_history_node_div = Div(text=pollution_history_html())
@@ -373,28 +398,37 @@ def launch(network):
     # 'Speeds' are in ms per frame
     speed_menu = ['Slow', 'Medium', 'Fast']
     speeds = dict(zip(speed_menu, [250, 100, 30]))
-    speed_dropdown = Dropdown(label="Animation Speed", value='Medium',
+    speed_dropdown = Dropdown(label="Speed", value='Medium',
                               button_type="primary", menu=speed_menu)
     speed_dropdown.on_change('value', update_speed)
 
     # Create a div for the timer
     timer = Div(text="")
 
+    # Create a radio button to choose what clicking a node does
+    click_options_menu = ['Pollution History', 'Pollution Injection']
+    click_options = dict(zip(click_options_menu, [0, 1]))
+    what_click_does = RadioGroup(
+        labels=click_options_menu,
+        active=click_options['Pollution History'])
+
     # Create menu bar
     menu_bar = column(
         network_select,
-        pollution_history_select,
-        pollution_history_node_div,
-        pollution_location_select,
-        pollution_location_div,
-        node_type_select,
-        type_div,
+        row(pollution_history_select, pollution_history_node_div,
+            sizing_mode="scale_height"),
+        row(pollution_location_select, pollution_location_div,
+            sizing_mode="scale_height"),
+        Div(text="Clicking a Node selects it as:"),
+        what_click_does,
+        row(node_type_select, type_div,
+            sizing_mode="scale_height"),
         node_size_slider,
-        play_button,
-        speed_dropdown,
+        row(play_button, speed_dropdown,
+            sizing_mode="scale_height"),
         slider,
         timer,
-        width=200, sizing_mode="stretch_height"
+        width=220, sizing_mode="stretch_height"
     )
 
     # Add the plots to a row, intially excluding pollution_history_plot
