@@ -145,9 +145,9 @@ def launch(network):
         # want one
         first_clicked_node_int = nodes_clicked_ints[0]
         clicked_node = list(G.nodes())[first_clicked_node_int]
-        if what_click_does.active == 0:
+        if what_click_does.active == click_options['Pollution History']:
             pollution_history_select.value = clicked_node
-        if what_click_does.active == 1:
+        if what_click_does.active == click_options['Pollution Injection']:
             pollution_location_select.value = clicked_node
 
     def update_node_type_highlight(attrname, old, new):
@@ -406,10 +406,11 @@ def launch(network):
     timer = Div(text="")
 
     # Create a radio button to choose what clicking a node does
+    click_options_menu = ['Pollution History', 'Pollution Injection']
+    click_options = dict(zip(click_options_menu, [0, 1]))
     what_click_does = RadioGroup(
-        labels=["Clicks Choose Pollution History",
-                "Clicks Choose Pollution Injection"],
-        active=0)
+        labels=click_options_menu,
+        active=click_options['Pollution History'])
 
     # Create menu bar
     menu_bar = column(
