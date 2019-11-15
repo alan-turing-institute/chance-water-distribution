@@ -136,16 +136,10 @@ def launch(network):
 
     def update_click_node(event):
         nodes_clicked_ints = graph.node_renderer.data_source.selected.indices
-        # It's possible to click multiple nodes when they overlap,
-        # but we only want one
+        # It's possible to click multiple nodes when they overlap, but we only
+        # want one
         first_clicked_node_int = nodes_clicked_ints[0]
-        clicked_node = "None"
-        node_count = -1
-        for node in G.nodes():
-            node_count += 1
-            if node_count == first_clicked_node_int:
-                clicked_node = node
-                break
+        clicked_node = list(G.nodes())[first_clicked_node_int]
         if what_click_does.active == 0:
             pollution_history_select.value = clicked_node
         if what_click_does.active == 1:
