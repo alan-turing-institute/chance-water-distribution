@@ -415,11 +415,12 @@ def launch(network):
     # Create menu bar
     menu_bar = column(
         network_select,
-        what_click_does,
         row(pollution_history_select, pollution_history_node_div,
             sizing_mode="scale_height"),
         row(pollution_location_select, pollution_location_div,
             sizing_mode="scale_height"),
+        Div(text="Clicking a Node selects it as:"),
+        what_click_does,
         row(node_type_select, type_div,
             sizing_mode="scale_height"),
         node_size_slider,
