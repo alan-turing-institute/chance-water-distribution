@@ -4,7 +4,7 @@ from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
                           Slider, Span, Button, ColorBar, LogTicker,
-                          ColumnDataSource)
+                          ColumnDataSource, Toggle)
 from bokeh.models.widgets import Dropdown, Div, Select, RadioGroup
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -20,7 +20,7 @@ from modules.pollution import (pollution_series, pollution_history,
 import pandas as pd
 
 
-def launch(network):
+def launch(network, map_background=True):
     """Set up the bokeh server app for a particular network.
     Takes as input a string corresponding to the name of the
     data dir under water/data/examples/ """
@@ -252,8 +252,9 @@ def launch(network):
                   y_axis_type="mercator")
 
     # Add map to plot
-    tile_provider = get_provider(Vendors.CARTODBPOSITRON)
-    plot.add_tile(tile_provider)
+    if map_background:
+        tile_provider = get_provider(Vendors.CARTODBPOSITRON)
+        plot.add_tile(tile_provider)
 
     # Create bokeh graph from the NetworkX object
     graph = from_networkx(G, locations)
@@ -415,6 +416,7 @@ def launch(network):
     # Create menu bar
     menu_bar = column(
         network_select,
+        map_radio,
         row(pollution_history_select, pollution_history_node_div,
             sizing_mode="scale_height"),
         row(pollution_location_select, pollution_location_div,
@@ -459,9 +461,14 @@ def launch(network):
 
 
 def switch_network(attrname, old, new):
-    """Switch the water network to the selected"""
+    """Add or remove the map tile"""
     network = new
     launch(network)
+
+
+def add_remove_map(attrname, old, new):
+    """Switch the water network to the selected"""
+    launch(network, map_background=map_radio.active)
 
 
 # Initialise
@@ -496,5 +503,11 @@ network_select = Select(title="Choose Water Network",
                         value=network,
                         options=networks)
 network_select.on_change('value', switch_network)
+
+map_radio = RadioGroup(
+    labels=["No Map", "Map"],
+    active=1
+)
+map_radio.on_change('active', add_remove_map)
 
 launch(network)
