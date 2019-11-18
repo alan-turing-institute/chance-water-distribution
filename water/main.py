@@ -416,7 +416,7 @@ def launch(network, map_background=True):
     # Create menu bar
     menu_bar = column(
         network_select,
-        map_radio,
+        map_toggle,
         row(pollution_history_select, pollution_history_node_div,
             sizing_mode="scale_height"),
         row(pollution_location_select, pollution_location_div,
@@ -468,7 +468,7 @@ def switch_network(attrname, old, new):
 
 def add_remove_map(attrname, old, new):
     """Switch the water network to the selected"""
-    launch(network, map_background=map_radio.active)
+    launch(network, map_background=map_toggle.active)
 
 
 # Initialise
@@ -504,10 +504,10 @@ network_select = Select(title="Choose Water Network",
                         options=networks)
 network_select.on_change('value', switch_network)
 
-map_radio = RadioGroup(
-    labels=["No Map", "Map"],
-    active=1
+map_toggle = Toggle(
+    label="Show Map",
+    active=True
 )
-map_radio.on_change('active', add_remove_map)
+map_toggle.on_change('active', add_remove_map)
 
 launch(network)
