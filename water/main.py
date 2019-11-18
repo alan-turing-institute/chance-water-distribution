@@ -461,7 +461,7 @@ def launch(network, map_background=True):
 
 
 def switch_network(attrname, old, new):
-    """Add or remove the map tile"""
+    """Switch the water network to the selected"""
     network = new
     if network == 'ky2':
         launch(network)
@@ -471,7 +471,7 @@ def switch_network(attrname, old, new):
 
 
 def add_remove_map(attrname, old, new):
-    """Switch the water network to the selected"""
+    """Add or remove the map tile"""
     network = network_select.value
     launch(network, map_background=map_toggle.active)
 
