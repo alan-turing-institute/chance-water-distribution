@@ -463,11 +463,16 @@ def launch(network, map_background=True):
 def switch_network(attrname, old, new):
     """Add or remove the map tile"""
     network = new
-    launch(network)
+    if network == 'ky2':
+        launch(network)
+    else:
+        map_toggle.active = False
+        launch(network, map_background=map_toggle.active)
 
 
 def add_remove_map(attrname, old, new):
     """Switch the water network to the selected"""
+    network = network_select.value
     launch(network, map_background=map_toggle.active)
 
 
@@ -504,6 +509,7 @@ network_select = Select(title="Choose Water Network",
                         options=networks)
 network_select.on_change('value', switch_network)
 
+# Create a button that adds or removes CartoDB map under the network
 map_toggle = Toggle(
     label="Show Map",
     active=True
