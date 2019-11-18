@@ -75,9 +75,14 @@ def load_water_network(network):
     # Create plottable coordinates for each network node
     locations = {}
     for node, node_data in G.nodes().items():
+        x_adjust = 0
+        y_adjust = 0
         # Adjust the coordinates to roughly lay over Louisville, Kentucky
-        xd = node_data['pos'][0] - 13620000
-        yd = node_data['pos'][1] + 1170000
+        if network == 'ky2':
+            x_adjust = -13620000
+            y_adjust = 1170000
+        xd = node_data['pos'][0] + x_adjust
+        yd = node_data['pos'][1] + y_adjust
         locations[node] = (xd, yd)
 
     return G, locations, all_base_demands
