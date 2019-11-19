@@ -415,8 +415,8 @@ def launch(network, map_background=True):
 
     # Create menu bar
     menu_bar = column(
-        network_select,
-        map_toggle,
+        row(network_select, map_toggle,
+            sizing_mode="scale_height"),
         row(pollution_history_select, pollution_history_node_div,
             sizing_mode="scale_height"),
         row(pollution_location_select, pollution_location_div,
@@ -511,7 +511,7 @@ network_select.on_change('value', switch_network)
 
 # Create a button that adds or removes CartoDB map under the network
 map_toggle = Toggle(
-    label="Show Map",
+    label="Map",
     active=True
 )
 map_toggle.on_change('active', add_remove_map)
