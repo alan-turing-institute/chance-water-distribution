@@ -463,8 +463,7 @@ def switch_network(attrname, old, new):
 
 # Initialise
 callback_id = None
-# Animation speeds and speed drop down entries.
-# 'Speeds' are in ms per frame
+# Animation speeds in ms per frame
 speeds = [1000, 500, 100]
 animation_speed = speeds[1]  # Medium speed by default
 scenario = pd.DataFrame()
