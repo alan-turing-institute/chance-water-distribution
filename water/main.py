@@ -492,7 +492,6 @@ update()
 # Animation speeds in ms per frame
 speeds = [1000, 500, 100]
 animation_speed = speeds[1]  # Medium speed by default
-scenario = pd.DataFrame()
 
 curdoc().clear()
 curdoc().add_root(layout)
