@@ -28,9 +28,9 @@ def launch(network, map_background=True):
     global scenario
 
     def update_highlights():
-        """Set the color and width for each node in the graph."""
+        """Set the color and width for each node and edge in the graph."""
 
-        # Widths for edges of highlighted and normal nodes
+        # Widths for outlines of highlighted and normal nodes
         highlight_width = 3.0
         normal_width = 2.0
 
@@ -49,6 +49,7 @@ def launch(network, map_background=True):
 
         outline_colors = []
         outline_widths = []
+        edge_colors = []
         for node in G.nodes():
             if node == injection:
                 # Color injection node the injection color
@@ -66,9 +67,25 @@ def launch(network, map_background=True):
                 else:
                     outline_colors.append(colors[node_type])
                 outline_widths.append(normal_width)
+        # Set colors for edges so that those connected to a colored node
+        # are also that color, to increase visibility
+        for edge in G.edges():
+            if edge[0] == injection or edge[1] == injection:
+                edge_colors.append(injection_color)
+            elif edge[0] == node_to_highlight or edge[1] == node_to_highlight:
+                edge_colors.append(highlight_color)
+            else:
+                type1 = G.nodes[edge[0]]['type']
+                type2 = G.nodes[edge[1]]['type']
+                if type1 == type_highlight or type2 == type_highlight:
+                    edge_colors.append(type_highlight_color)
+                else:
+                    edge_colors.append('gray')
 
         data = graph.node_renderer.data_source.data
         data['line_color'], data['line_width'] = outline_colors, outline_widths
+        edge_data = graph_shadow.edge_renderer.data_source.data
+        edge_data['line_color'] = edge_colors
 
     def update_pollution_history():
         history_node = pollution_history_select.value
@@ -293,7 +310,7 @@ def launch(network, map_background=True):
     graph_shadow = from_networkx(G, locations)
     shadow_width = edge_width*1.5
     graph_shadow.edge_renderer.glyph = MultiLine(line_width=shadow_width,
-                                                 line_color="gray")
+                                                 line_color="line_color")
 
     # Green hover for both nodes and edges
     hover_color = '#abdda4'
