@@ -1,0 +1,15 @@
+[submodule "water/data/examples/ky2"]
+	path = water/data/examples/ky2
+	url = https://github.com/alan-turing-institute/chance-water-distribution-ky2.git
+[submodule "water/data/examples/ky4"]
+	path = water/data/examples/ky4
+	url = https://github.com/alan-turing-institute/chance-water-distribution-ky4.git
+[submodule "water/data/examples/ky8"]
+	path = water/data/examples/ky8
+	url = https://github.com/alan-turing-institute/chance-water-distribution-ky8.git
+[submodule "water/data/examples/ky9"]
+	path = water/data/examples/ky9
+	url = https://github.com/alan-turing-institute/chance-water-distribution-ky9.git
+[submodule "water/data/examples/ky14"]
+	path = water/data/examples/ky14
+	url = https://github.com/alan-turing-institute/chance-water-distribution-ky14.git

@@ -1,14 +1,27 @@
 import wntr
 import numpy as np
-from os.path import dirname, join
+from os import listdir
+from os.path import dirname, join, isdir
 import pickle
 from statistics import mean
+import yaml
 
 
-def load_water_network():
+def get_network_examples():
+    examples = []
+    dir = join(dirname(__file__), '../data',
+               'examples/')
+    for filename in listdir(dir):
+        if isdir(join(dir, filename)):
+            examples.append(filename)
+    examples.sort()
+    return examples
+
+
+def load_water_network(network):
     # load .inp file
     filename = join(dirname(__file__), '../data',
-                    'kentucky_water_distribution_networks/ky2.inp')
+                    'examples/' + network + '/' + network + '.inp')
 
     # Create water network
     wn = wntr.network.WaterNetworkModel(filename)
@@ -31,8 +44,8 @@ def load_water_network():
             G.nodes[node]['elevation'] = 'N/A'
         try:
             base_demands = []
-            # TODO: For some reason this is a list, but in Ky2 data there is
-            # only ever a single base demand value
+            # TODO: For some reason this is a list, but in Kentucky 2
+            # data there is only ever a single base demand value
             for timeseries in wn.get_node(node).demand_timeseries_list:
                 base_demands.append(timeseries.base_value)
             base_demand = mean(base_demands)
@@ -61,36 +74,59 @@ def load_water_network():
                                  for i in all_base_demands])
 
     # Create plottable coordinates for each network node
+    # Adjust the coordinates if specified by metadata file
+    x_offset = 0
+    y_offset = 0
+    include_map = False
+    try:
+        metadata_file = join(dirname(__file__), '../data', 'examples/'
+                                                + network
+                                                + '/metadata.yml')
+        with open(metadata_file, 'r') as stream:
+            metadata = yaml.safe_load(stream)
+            if 'map' in metadata:
+                x_offset = metadata['map']['x_offset']
+                y_offset = metadata['map']['y_offset']
+                include_map = True
+    except (FileNotFoundError, KeyError):
+        pass
+
     locations = {}
     for node, node_data in G.nodes().items():
-        # Adjust the coordinates to roughly lay over Louisville, Kentucky
-        xd = node_data['pos'][0] - 13620000
-        yd = node_data['pos'][1] + 1170000
+        xd = node_data['pos'][0] + x_offset
+        yd = node_data['pos'][1] + y_offset
         locations[node] = (xd, yd)
 
-    return G, locations, all_base_demands
+    return G, locations, all_base_demands, include_map
 
 
-def load_pollution_dynamics():
+def load_pollution_dynamics(network):
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
-    filename = join(dirname(__file__), '../data',
-                    'kentucky_water_distribution_networks/Ky2.pkl')
-    with open(filename, 'rb') as input_file:
-        pollution = pickle.load(input_file)
-
-    # Determine max and min pollution values and all scenario names
+    files = join(dirname(__file__), '../data',
+                 'examples/' + network + '/' + network + '')
+    # Determine max and min pollution values and all node names
     max_pols = []
     min_pols = []
     injection_nodes = []
-    for key, df in pollution.items():
-        if key != 'chemical_start_time':
-            injection_nodes.append(key)
-            v = df.values.ravel()
-            max_pols.append(np.max(v))
-            min_pols.append(np.min(v[v > 0]))
+    pollution = {}
+    for filename in listdir(files):
+        if filename.endswith(".pkl"):
+            node_name = filename.split(".pkl")[0]
+            injection_nodes.append(node_name)
+            with open(files + "/" + filename, 'rb') as input_file:
+                pollution_df = pickle.load(input_file)
+                pollution[node_name] = pollution_df
+                v = pollution_df.values.ravel()
+                max_pols.append(np.max(v))
+                try:  # below will error for a df where all values zero
+                    min_pols.append(np.min(v[v > 0]))
+                except ValueError:
+                    min_pols.append(0)
+
     max_pol = np.max(max_pols)
     min_pol = np.min(min_pols)
+    injection_nodes.sort()
 
     # Choose a default node for pollution injection
     start_node = injection_nodes[0]

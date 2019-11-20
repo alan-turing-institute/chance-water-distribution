@@ -11,15 +11,15 @@ def timer_html(timestep):
 def pollution_history_html(history_node="None", highlight_color="black"):
     if history_node == "None":
         highlight_color = "black"
-    pollution_history_html = "<p>Selection: <b style='color:"
+    pollution_history_html = "<p><b style='color:"
     pollution_history_html += highlight_color + "'>"
     pollution_history_html += history_node
     pollution_history_html += "</b></p>"
     return pollution_history_html
 
 
-def pollution_loaction_html(injection_node, injection_color):
-    pollution_location_html = "<p>Selection: <b style='color:"
+def pollution_location_html(injection_node, injection_color):
+    pollution_location_html = "<p><b style='color:"
     pollution_location_html += injection_color + "'>"
     pollution_location_html += injection_node
     pollution_location_html += "</b></p>"
@@ -29,7 +29,7 @@ def pollution_loaction_html(injection_node, injection_color):
 def node_type_html(type="None", color="black"):
     if type == "None":
         color = "black"
-    node_type_html = "<p>Selection: <b style='color:"
+    node_type_html = "<p><b style='color:"
     node_type_html += color + "'>"
     node_type_html += type
     node_type_html += "</b></p>"
