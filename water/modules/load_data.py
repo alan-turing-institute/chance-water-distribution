@@ -77,7 +77,7 @@ def load_water_network(network):
     # Adjust the coordinates if specified by metadata file
     x_offset = 0
     y_offset = 0
-    map = False
+    include_map = False
     try:
         metadata_file = join(dirname(__file__), '../data', 'examples/'
                                                 + network
@@ -87,7 +87,7 @@ def load_water_network(network):
             if 'map' in metadata:
                 x_offset = metadata['map']['x_offset']
                 y_offset = metadata['map']['y_offset']
-                map = True
+                include_map = True
     except (FileNotFoundError, KeyError):
         pass
 
@@ -97,7 +97,7 @@ def load_water_network(network):
         yd = node_data['pos'][1] + y_offset
         locations[node] = (xd, yd)
 
-    return G, locations, all_base_demands, map
+    return G, locations, all_base_demands, include_map
 
 
 def load_pollution_dynamics(network):
