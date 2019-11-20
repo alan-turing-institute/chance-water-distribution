@@ -4,6 +4,7 @@ from os import listdir
 from os.path import dirname, join, isdir
 import pickle
 from statistics import mean
+import yaml
 
 
 def get_network_examples():
@@ -73,16 +74,22 @@ def load_water_network(network):
                                  for i in all_base_demands])
 
     # Create plottable coordinates for each network node
+    # Adjust the coordinates if specified by metadata file
+    try:
+        metadata_file = join(dirname(__file__), '../data',
+                        'examples/' + network + '/metadata.yml')
+        with open(metadata_file, 'r') as stream:
+            metadata = yaml.safe_load(stream)
+            x_offset = metadata['x_offset']
+            y_offset = metadata['y_offset']
+    except FileNotFoundError:
+        x_offset = 0
+        y_offset = 0
+
     locations = {}
     for node, node_data in G.nodes().items():
-        x_adjust = 0
-        y_adjust = 0
-        # Adjust the coordinates to roughly lay over Louisville, Kentucky
-        if network == 'ky2':
-            x_adjust = -13620000
-            y_adjust = 1170000
-        xd = node_data['pos'][0] + x_adjust
-        yd = node_data['pos'][1] + y_adjust
+        xd = node_data['pos'][0] + x_offset
+        yd = node_data['pos'][1] + y_offset
         locations[node] = (xd, yd)
 
     return G, locations, all_base_demands
