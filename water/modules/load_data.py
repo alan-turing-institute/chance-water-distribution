@@ -75,17 +75,21 @@ def load_water_network(network):
 
     # Create plottable coordinates for each network node
     # Adjust the coordinates if specified by metadata file
+    x_offset = 0
+    y_offset = 0
+    map = False
     try:
         metadata_file = join(dirname(__file__), '../data', 'examples/'
                                                 + network
                                                 + '/metadata.yml')
         with open(metadata_file, 'r') as stream:
             metadata = yaml.safe_load(stream)
-            x_offset = metadata['x_offset']
-            y_offset = metadata['y_offset']
-    except FileNotFoundError:
-        x_offset = 0
-        y_offset = 0
+            if 'map' in metadata:
+                x_offset = metadata['map']['x_offset']
+                y_offset = metadata['map']['y_offset']
+                map = True
+    except (FileNotFoundError, KeyError):
+        pass
 
     locations = {}
     for node, node_data in G.nodes().items():
@@ -93,7 +97,7 @@ def load_water_network(network):
         yd = node_data['pos'][1] + y_offset
         locations[node] = (xd, yd)
 
-    return G, locations, all_base_demands
+    return G, locations, all_base_demands, map
 
 
 def load_pollution_dynamics(network):
