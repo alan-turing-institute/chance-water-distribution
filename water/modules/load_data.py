@@ -76,8 +76,9 @@ def load_water_network(network):
     # Create plottable coordinates for each network node
     # Adjust the coordinates if specified by metadata file
     try:
-        metadata_file = join(dirname(__file__), '../data',
-                        'examples/' + network + '/metadata.yml')
+        metadata_file = join(dirname(__file__), '../data', 'examples/'
+                                                + network
+                                                + '/metadata.yml')
         with open(metadata_file, 'r') as stream:
             metadata = yaml.safe_load(stream)
             x_offset = metadata['x_offset']
