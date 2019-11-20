@@ -394,10 +394,6 @@ def launch(network):
     node_size_slider.on_change('value', update_node_size)
 
     # Speed selection dropdown widget
-    # Animation speeds and speed drop down entries.
-    # 'Speeds' are in ms per frame
-    speed_menu = ['Slow', 'Medium', 'Fast']
-    speeds = dict(zip(speed_menu, [250, 100, 30]))
     speed_dropdown = Dropdown(label="Speed", value='Medium',
                               button_type="primary", menu=speed_menu)
     speed_dropdown.on_change('value', update_speed)
@@ -466,7 +462,11 @@ def switch_network(attrname, old, new):
 
 # Initialise
 callback_id = None
-animation_speed = 100  # Medium
+# Animation speeds and speed drop down entries.
+# 'Speeds' are in ms per frame
+speed_menu = ['Slow', 'Medium', 'Fast']
+speeds = dict(zip(speed_menu, [1000, 500, 100]))
+animation_speed = speeds['Medium']
 scenario = pd.DataFrame()
 
 # Labels for the play/pause button in paused and playing states respectively
