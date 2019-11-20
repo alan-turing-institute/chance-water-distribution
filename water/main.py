@@ -49,7 +49,6 @@ def launch(network, map_background=True):
 
         outline_colors = []
         outline_widths = []
-        edge_colors = []
         for node in G.nodes():
             if node == injection:
                 # Color injection node the injection color
@@ -69,11 +68,16 @@ def launch(network, map_background=True):
                 outline_widths.append(normal_width)
         # Set colors for edges so that those connected to a colored node
         # are also that color, to increase visibility
+        edge_colors = []
+        edge_widths = []
+        highlight_edge_width = shadow_width + 1.0
         for edge in G.edges():
             if edge[0] == injection or edge[1] == injection:
                 edge_colors.append(injection_color)
+                edge_widths.append(highlight_edge_width)
             elif edge[0] == node_to_highlight or edge[1] == node_to_highlight:
                 edge_colors.append(highlight_color)
+                edge_widths.append(highlight_edge_width)
             else:
                 type1 = G.nodes[edge[0]]['type']
                 type2 = G.nodes[edge[1]]['type']
@@ -81,11 +85,13 @@ def launch(network, map_background=True):
                     edge_colors.append(type_highlight_color)
                 else:
                     edge_colors.append('gray')
+                edge_widths.append(shadow_width)
 
         data = graph.node_renderer.data_source.data
         data['line_color'], data['line_width'] = outline_colors, outline_widths
         edge_data = graph_shadow.edge_renderer.data_source.data
         edge_data['line_color'] = edge_colors
+        edge_data['line_width'] = edge_widths
 
     def update_pollution_history():
         history_node = pollution_history_select.value
@@ -309,7 +315,7 @@ def launch(network, map_background=True):
     # against the map
     graph_shadow = from_networkx(G, locations)
     shadow_width = edge_width*1.5
-    graph_shadow.edge_renderer.glyph = MultiLine(line_width=shadow_width,
+    graph_shadow.edge_renderer.glyph = MultiLine(line_width="line_width",
                                                  line_color="line_color")
 
     # Green hover for both nodes and edges
