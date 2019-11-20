@@ -5,7 +5,7 @@ from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
                           Slider, Span, Button, ColorBar, LogTicker,
                           ColumnDataSource)
-from bokeh.models.widgets import Dropdown, Div, Select, RadioGroup
+from bokeh.models.widgets import Div, Select, RadioGroup
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
@@ -394,13 +394,9 @@ def launch(network):
     node_size_slider.on_change('value', update_node_size)
 
     # Speed selection dropdown widget
-    # Animation speeds and speed drop down entries.
-    # 'Speeds' are in ms per frame
     speed_menu = ['Slow', 'Medium', 'Fast']
-    speeds = dict(zip(speed_menu, [250, 100, 30]))
-    speed_dropdown = Dropdown(label="Speed", value='Medium',
-                              button_type="primary", menu=speed_menu)
-    speed_dropdown.on_change('value', update_speed)
+    speed_radio = RadioGroup(labels=speed_menu, active=1)
+    speed_radio.on_change('active', update_speed)
 
     # Create a div for the timer
     timer = Div(text="")
@@ -424,7 +420,8 @@ def launch(network):
         row(node_type_select, type_div,
             sizing_mode="scale_height"),
         node_size_slider,
-        row(play_button, speed_dropdown,
+        Div(text="Pollution Spread"),
+        row(play_button, speed_radio,
             sizing_mode="scale_height"),
         slider,
         timer,
@@ -466,7 +463,9 @@ def switch_network(attrname, old, new):
 
 # Initialise
 callback_id = None
-animation_speed = 100  # Medium
+# Animation speeds in ms per frame
+speeds = [1000, 500, 100]
+animation_speed = speeds[1]  # Medium speed by default
 scenario = pd.DataFrame()
 
 # Labels for the play/pause button in paused and playing states respectively
