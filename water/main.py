@@ -17,7 +17,6 @@ from modules.load_data import (load_water_network, load_pollution_dynamics,
                                get_network_examples)
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
-import pandas as pd
 
 callback_id = None
 # Labels for the play/pause button in paused and playing states respectively
@@ -433,8 +432,11 @@ node_size_slider = Slider(start=5, end=20, value=initial_node_size, step=1,
                           title="Base Node Size")
 node_size_slider.on_change('value', update_node_size)
 
-# Speed selection dropdown widget
+
+# Animation speeds in ms per frame
+speeds = [1000, 500, 100]
 speed_menu = ['Slow', 'Medium', 'Fast']
+# Speed radio group widget
 speed_radio = RadioGroup(labels=speed_menu, active=1)
 speed_radio.on_change('active', update_speed)
 
@@ -486,12 +488,9 @@ history_node = pollution[start_node].keys()[0]
 history = pollution_history(scenario, history_node)
 pollution_history_source.data['time'] = history.index
 pollution_history_source.data['pollution_value'] = history.values
+animation_speed = speeds[speed_radio.active]
 update_highlights()
 update()
-
-# Animation speeds in ms per frame
-speeds = [1000, 500, 100]
-animation_speed = speeds[1]  # Medium speed by default
 
 curdoc().clear()
 curdoc().add_root(layout)
