@@ -251,9 +251,10 @@ def launch(network):
                   x_axis_type="mercator",
                   y_axis_type="mercator")
 
-    # Add map to plot
-    tile_provider = get_provider(Vendors.CARTODBPOSITRON)
-    plot.add_tile(tile_provider)
+    # Add map to plot (for ky2 only)
+    if network == 'ky2':
+        tile_provider = get_provider(Vendors.CARTODBPOSITRON)
+        plot.add_tile(tile_provider)
 
     # Create bokeh graph from the NetworkX object
     graph = from_networkx(G, locations)
