@@ -238,7 +238,7 @@ def launch(network):
 
         return Range1d(x_lower, x_upper), Range1d(y_lower, y_upper)
 
-    G, locations, all_base_demands = load_water_network(network)
+    G, locations, all_base_demands, include_map = load_water_network(network)
 
     (pollution, injection_nodes, start_node, start_step, end_step, step_size,
      max_pol, min_pol) = load_pollution_dynamics(network)
@@ -251,9 +251,10 @@ def launch(network):
                   x_axis_type="mercator",
                   y_axis_type="mercator")
 
-    # Add map to plot
-    tile_provider = get_provider(Vendors.CARTODBPOSITRON)
-    plot.add_tile(tile_provider)
+    # Add map to plot if specified
+    if include_map:
+        tile_provider = get_provider(Vendors.CARTODBPOSITRON)
+        plot.add_tile(tile_provider)
 
     # Create bokeh graph from the NetworkX object
     graph = from_networkx(G, locations)
