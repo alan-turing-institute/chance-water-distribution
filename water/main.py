@@ -420,6 +420,7 @@ def launch(network):
         row(node_type_select, type_div,
             sizing_mode="scale_height"),
         node_size_slider,
+        Div(text="Pollution Spread"),
         row(play_button, speed_radio,
             sizing_mode="scale_height"),
         slider,
