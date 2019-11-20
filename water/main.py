@@ -5,7 +5,7 @@ from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
                           Slider, Span, Button, ColorBar, LogTicker,
                           ColumnDataSource)
-from bokeh.models.widgets import Dropdown, Div, Select, RadioGroup
+from bokeh.models.widgets import Div, Select, RadioGroup
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
