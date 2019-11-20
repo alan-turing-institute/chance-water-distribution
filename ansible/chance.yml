@@ -1,0 +1,64 @@
+- hosts: appservers
+  vars:
+    bokeh_port: 5006
+    http_port: 80
+    app_dir: 'chance'
+  tasks:
+    - name: Install required packages
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - nginx
+          - python3
+          - python3-pip
+          - python3-setuptools
+          - python3-virtualenv
+          - python-setuptools
+    - name: Clone repository
+      git:
+        repo: https://github.com/alan-turing-institute/chance-water-distribution
+        dest: "{{ ansible_user_dir }}/{{ app_dir }}"
+        version: dev
+        clone: yes
+        depth: 1
+        recursive: yes
+    - name: Install pip dependencies
+      pip:
+        executable: pip3
+        requirements: "{{ ansible_user_dir }}/{{ app_dir }}/requirements.txt"
+    - name: Configure reverse proxy
+      become: yes
+      template:
+        src: chance.j2
+        dest: /etc/nginx/sites-available/chance
+      notify: Restart nginx
+    - name: Enable chance site
+      become: yes
+      file:
+        path: /etc/nginx/sites-enabled/chance
+        src: /etc/nginx/sites-available/chance
+        state: link
+      notify: Restart nginx
+    - name: Disable default site
+      become: yes
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Restart nginx
+    - name: Enable and start nginx
+      systemd:
+        name: nginx.service
+        enabled: yes
+        state: started
+    - name: Run bokeh server
+      shell:
+        chdir: "{{ ansible_user_dir }}/{{ app_dir }}"
+        cmd: "start-stop-daemon -SbCv -x {{ ansible_user_dir }}/.local/bin/bokeh -- serve {{ ansible_user_dir }}/{{ app_dir }}/water --port {{ bokeh_port }} --allow-websocket-origin '*'"
+  handlers:
+    - name: Restart nginx
+      systemd:
+        name: nginx.service
+        state: restarted
