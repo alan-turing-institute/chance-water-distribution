@@ -491,10 +491,17 @@ def bkapp(doc):
 
 @app.route('/', methods=['GET'])
 def bkapp_page():
-    network = request.args.get('network')
+    # Get network names, used in template
+    network_names = get_network_examples()
+
+    # Get Network request argument
+    current_network_name = request.args.get('network_name')
+    # Create bokeh server, passing http request for network
     script = server_document('http://localhost:5006/bkapp',
-                             arguments={'network': network})
-    return render_template("embed.html", script=script, template="Flask")
+                             arguments={'network': current_network_name})
+    return render_template("embed.html", script=script, template="Flask",
+                           network_names=network_names,
+                           current_network_name=current_network_name)
 
 
 def bk_worker():
