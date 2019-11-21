@@ -1,5 +1,6 @@
 bokeh
 colorcet
+flask
 networkx
 numpy
 pandas
