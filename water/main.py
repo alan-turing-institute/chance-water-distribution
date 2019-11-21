@@ -516,11 +516,4 @@ def bk_worker():
 Thread(target=bk_worker).start()
 
 if __name__ == '__main__':
-    print('Opening single process Flask app with embedded Bokeh application '
-          'on http://localhost:8000/')
-    print()
-    print(
-        'Multiple connections may block the Bokeh app in this configuration!'
-        )
-    print('See "flask_gunicorn_embed.py" for one way to run multi-process')
     app.run(port=8000)
