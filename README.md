@@ -44,7 +44,7 @@ Bokeh App
 ### Docker version
 
 1. Pull from Docker Hub: `docker pull turinginst/chance-water`
-2. Run the container `docker run -p 5006:5006 -it turinginst/chance-water`
+2. Run the container `docker run -p 5006:5006 turinginst/chance-water`
 3. Open http://localhost:5006/water in a browser
 
 The image is [hosted on DockerHub](https://hub.docker.com/repository/docker/turinginst/chance-water/general) and is set to build from pushes to the master branch of this repo.
