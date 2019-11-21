@@ -12,7 +12,7 @@ from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
 from collections import defaultdict
 import colorcet as cc
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from modules.html_formatter import (timer_html, pollution_history_html,
                                     pollution_location_html, node_type_html)
 from modules.load_data import (load_water_network, load_pollution_dynamics,
@@ -261,7 +261,6 @@ def bkapp(doc):
 
     # Get network from request
     args = doc.session_context.request.arguments
-    args = {}
     if 'network' in args:
         network = args.get('network')[0].decode('utf8')
         if network not in networks:
@@ -492,7 +491,9 @@ def bkapp(doc):
 
 @app.route('/', methods=['GET'])
 def bkapp_page():
-    script = server_document('http://localhost:5006/bkapp')
+    network = request.args.get('network')
+    script = server_document('http://localhost:5006/bkapp',
+                             arguments={'network': network})
     return render_template("embed.html", script=script, template="Flask")
 
 
