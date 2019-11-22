@@ -17,3 +17,5 @@ script:
   - pycodestyle --statistics --count water
   # Run tests
   - python -m pytest -v tests
+  # Lint ansible playbook
+  - ansible-lint ansible/chance.yml
