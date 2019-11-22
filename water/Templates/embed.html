@@ -8,7 +8,8 @@
 
 <body>
   <form action="/">
-      <select name="network_name">
+      <label for="network_name">Network</label>
+      <select name="network_name" id="network_name">
           {% for network in network_names %}
           {% if network == current_network_name %}
           <option selected value="{{ network }}">{{ network }}</option>
