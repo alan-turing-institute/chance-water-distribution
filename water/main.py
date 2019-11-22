@@ -486,7 +486,6 @@ def bkapp(doc):
     update()
 
     doc.add_root(layout)
-    doc.title = "Water Network Pollution"
 
 
 @app.route('/', methods=['GET'])
@@ -499,7 +498,8 @@ def bkapp_page():
     # Create bokeh server, passing http request for network
     script = server_document('http://localhost:5006/bkapp',
                              arguments={'network': current_network_name})
-    return render_template("embed.html", script=script, template="Flask",
+    return render_template("embed.html", script=script,
+                           title="Water Network Pollution",
                            network_names=network_names,
                            current_network_name=current_network_name)
 
