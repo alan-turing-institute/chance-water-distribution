@@ -31,7 +31,7 @@ The data for contamination spread scenarios is pre-computed and coupled with inf
 1. Visualization of Weisi/Alessio's Neural Network's decision making process for reducing a water network to a set of critical nodes
 2. A version of the app that water networks can input their own water networks and contamination scenario data to, by uploading files in a format specified by the app
 
-Bokeh App
+Run the App Locally
 -------
 
 *Tested with Python 3.6 and 3.7*
@@ -39,4 +39,17 @@ Bokeh App
 1. Clone the repository: `git clone https://github.com/alan-turing-institute/chance-water-distribution`
 2. Install the python requirements: `pip install -r requirements.txt`
 3. Download data modules: `git submodule update --init --recursive`
-4. Run bokeh server from top dir of the repo: `bokeh serve --show water`
+4. Run flask server from top dir of the repo: `python water/main.py`
+
+Deploying the App
+-------
+
+When deploying the app Flask's built in server should not be used. Suggestions
+for WSGI servers that can be used with Flask can be found
+[here](https://flask.palletsprojects.com/en/1.0.x/deploying/). For example,
+gunicorn can be used by
+```python
+pip install gunicorn
+cd water
+gunicorn main:app
+```
