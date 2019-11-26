@@ -6,7 +6,7 @@ server {
     error_log   /tmp/bokeh.error.log debug;
 
     location / {
-        proxy_pass http://127.0.0.1:{{ bokeh_port }};
+        proxy_pass http://127.0.0.1:{{ app_port }};
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_http_version 1.1;
