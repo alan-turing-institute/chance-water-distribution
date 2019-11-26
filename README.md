@@ -48,8 +48,8 @@ When deploying the app Flask's built in server should not be used. Suggestions
 for WSGI servers that can be used with Flask can be found
 [here](https://flask.palletsprojects.com/en/1.0.x/deploying/). For example,
 gunicorn can be used by
-```python
+```
 pip install gunicorn
 cd water
-gunicorn main:app
+gunicorn -w 4 main:app
 ```
