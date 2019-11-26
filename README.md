@@ -53,3 +53,11 @@ pip install gunicorn
 cd water
 gunicorn -w 4 main:app
 ```
+
+### Docker version
+
+1. Pull from Docker Hub: `docker pull turinginst/chance-water`
+2. Run the container `docker run -p 8000:8000 turinginst/chance-water`
+3. Open http://localhost:8000 in a browser
+
+The image is [hosted on DockerHub](https://hub.docker.com/repository/docker/turinginst/chance-water/general) and is set to build from pushes to the master branch of this repo.

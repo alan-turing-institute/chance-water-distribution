@@ -1,0 +1,111 @@
+- hosts: appservers
+  vars:
+    bokeh_port: 5006
+    http_port: 80
+    container_image: turinginst/chance-water
+
+  tasks:
+    - name: Install aptitude
+      become: yes
+      apt:
+        name: aptitude
+        state: present
+
+    - name: Install Docker requirements
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - python-docker
+
+    - name: Add Docker GPG apt Key
+      become: yes
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      become: yes
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: Install docker-ce
+      become: yes
+      apt:
+        name: docker-ce
+        update_cache: yes
+        state: present
+
+    - name: Add user to the docker group
+      become: yes
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append : yes
+
+    - name: Enable and start docker service
+      become: yes
+      systemd:
+        name: docker.service
+        state: started
+        enabled: yes
+
+    - name: Install nginx
+      become: yes
+      apt:
+        name: nginx
+        state: present
+
+    - name: Configure reverse proxy
+      become: yes
+      template:
+        src: chance.j2
+        dest: /etc/nginx/sites-available/chance
+      notify: Restart nginx
+
+    - name: Enable chance site
+      become: yes
+      file:
+        path: /etc/nginx/sites-enabled/chance
+        src: /etc/nginx/sites-available/chance
+        state: link
+      notify: Restart nginx
+
+    - name: Disable default site
+      become: yes
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Restart nginx
+
+    - name: Enable and start nginx
+      become: yes
+      systemd:
+        name: nginx.service
+        enabled: yes
+        state: started
+
+    - name: Pull docker image
+      docker_image:
+        name: "{{ container_image }}"
+        source: pull
+
+    - name: Run docker container
+      docker_container:
+        name: chance
+        image: "{{ container_image }}"
+        command: bokeh serve water --allow-websocket-origin '*'
+        state: started
+        published_ports:
+          - "{{ bokeh_port }}:{{ bokeh_port }}"
+
+  handlers:
+    - name: Restart nginx
+      become: yes
+      systemd:
+        name: nginx.service
+        state: restarted
