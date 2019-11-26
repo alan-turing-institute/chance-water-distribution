@@ -535,7 +535,7 @@ def bkapp_page():
     # Get Network request argument
     current_network_name = request.args.get('network_name')
     # Create bokeh server, passing http request for network
-    script = server_document('http://localhost:%d/bkapp' % port,
+    script = server_document('http://localhost:{:d}/bkapp'.format(port),
                              arguments={'network': current_network_name})
     return render_template("embed.html", script=script,
                            title="Water Network Pollution",
