@@ -5,5 +5,7 @@ COPY water /water
 COPY requirements.txt /requirements.txt
 
 RUN pip install -r requirements.txt
+RUN pip install gunicorn
 
-CMD bokeh serve water
+WORKDIR /water
+CMD gunicorn -w 4 main:app
