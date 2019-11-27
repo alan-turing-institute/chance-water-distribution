@@ -67,7 +67,7 @@ def bkapp(doc):
             'Tank': 'green'
             })
 
-        injection = pollution_location_select.value
+        injection = pollution_injection_select.value
         node_to_highlight = pollution_history_select.value
         type_highlight = node_type_select.value
 
@@ -194,10 +194,10 @@ def bkapp(doc):
         # want one
         first_clicked_node_int = nodes_clicked_ints[0]
         clicked_node = list(G.nodes())[first_clicked_node_int]
-        if what_click_does.active == click_options['Pollution History']:
+        if what_click_does.active == click_options['Pollution History Plot']:
             pollution_history_select.value = clicked_node
-        if what_click_does.active == click_options['Pollution Injection']:
-            pollution_location_select.value = clicked_node
+        if what_click_does.active == click_options['Pollution Injection Node']:
+            pollution_injection_select.value = clicked_node
 
     def update_node_type_highlight(attrname, old, new):
         """Highlight node type drop down callback.
@@ -225,7 +225,7 @@ def bkapp(doc):
         update_highlights()
         update_pollution_history()
         update()
-        injection_node = pollution_location_select.value
+        injection_node = pollution_injection_select.value
         pollution_location_div.text = pollution_location_html(injection_node,
                                                               injection_color)
 
@@ -418,7 +418,7 @@ def bkapp(doc):
     play_button.on_click(animate)
 
     # Menu to highlight nodes green and display pollution history
-    pollution_history_select = Select(title="Pollution History Node",
+    pollution_history_select = Select(title="Pollution History Plot Node",
                                       value="None",
                                       options=['None']+list(G.nodes()))
     pollution_history_select.on_change('value', update_pollution_history_node)
@@ -439,13 +439,13 @@ def bkapp(doc):
     type_div = Div(text=node_type_html())
 
     # Dropdown menu to choose pollution start location
-    pollution_location_select = Select(title="Pollution Injection Node",
-                                       value=injection_nodes[0],
-                                       options=injection_nodes)
-    pollution_location_select.on_change('value', update_injection)
+    pollution_injection_select = Select(title="Pollution Injection Node",
+                                        value=injection_nodes[0],
+                                        options=injection_nodes)
+    pollution_injection_select.on_change('value', update_injection)
 
     # Create a div to show the name of pollution start node
-    injection_node = pollution_location_select.value
+    injection_node = pollution_injection_select.value
     pol_html = pollution_location_html(injection_node, injection_color)
     pollution_location_div = Div(text=pol_html)
 
@@ -469,24 +469,29 @@ def bkapp(doc):
     timer = Div(text="")
 
     # Create a radio button to choose what clicking a node does
-    click_options_menu = ['Pollution History', 'Pollution Injection']
+    click_options_menu = ['Pollution History Plot', 'Pollution Injection Node']
     click_options = dict(zip(click_options_menu, [0, 1]))
     what_click_does = RadioGroup(
         labels=click_options_menu,
-        active=click_options['Pollution History'])
+        active=click_options['Pollution History Plot'])
+
+    # Create a div to go within the below menu that describes pollution spread
+    info = "<p>Pollution Spread Scenario:</p>"
+    info += "<p><i>Pollution injected at 10-11hr</i></p>"
+    pollution_spread_info = Div(text=info)
 
     # Create menu bar
     menu_bar = column(
         row(pollution_history_select, pollution_history_node_div,
             sizing_mode="scale_height"),
-        row(pollution_location_select, pollution_location_div,
+        row(pollution_injection_select, pollution_location_div,
             sizing_mode="scale_height"),
         Div(text="Clicking a Node selects it as:"),
         what_click_does,
         row(node_type_select, type_div,
             sizing_mode="scale_height"),
         node_size_slider,
-        Div(text="Pollution Spread (starts at 10hr)"),
+        pollution_spread_info,
         row(play_button, speed_radio,
             sizing_mode="scale_height"),
         time_slider,
@@ -508,7 +513,7 @@ def bkapp(doc):
     )
 
     # Initialise
-    scenario = pollution_scenario(pollution, pollution_location_select.value)
+    scenario = pollution_scenario(pollution, pollution_injection_select.value)
     history_node = pollution[start_node].keys()[0]
     history = pollution_history(scenario, history_node)
     pollution_history_source.data['time'] = history.index
