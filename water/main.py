@@ -409,7 +409,7 @@ def bkapp(doc):
     pollution_history_plot.add_layout(timestep_span)
 
     # Slider to change the timestep of the pollution data visualised
-    time_slider = Slider(start=0, end=end_step, value=0, step=step_size,
+    time_slider = Slider(start=0, end=end_step, value=36000, step=step_size,
                     title="Time (s)")
     time_slider.on_change('value', update_time_slider)
 
@@ -486,7 +486,7 @@ def bkapp(doc):
         row(node_type_select, type_div,
             sizing_mode="scale_height"),
         node_size_slider,
-        Div(text="Pollution Spread"),
+        Div(text="Pollution Spread (starts at 10hr)"),
         row(play_button, speed_radio,
             sizing_mode="scale_height"),
         time_slider,
