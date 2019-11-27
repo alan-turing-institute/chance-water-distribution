@@ -1,0 +1,25 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title }}</title>
+</head>
+
+<body>
+  <form action="/">
+      <label for="network_name">Network</label>
+      <select name="network_name" id="network_name">
+          {% for network in network_names %}
+          {% if network == current_network_name %}
+          <option selected value="{{ network }}">{{ network }}</option>
+          {% else %}
+          <option value="{{ network }}">{{ network }}</option>
+          {% endif %}
+          {% endfor %}
+      </select>
+      <input type="submit" value="Select">
+  </form>
+  {{ script|safe }}
+</body>
+</html>

@@ -1,6 +1,6 @@
 - hosts: appservers
   vars:
-    bokeh_port: 5006
+    app_port: 8000
     http_port: 80
     container_image: turinginst/chance-water
 
@@ -101,7 +101,7 @@
         command: bokeh serve water --allow-websocket-origin '*'
         state: started
         published_ports:
-          - "{{ bokeh_port }}:{{ bokeh_port }}"
+          - "{{ app_port }}:{{ app_port }}"
 
   handlers:
     - name: Restart nginx
