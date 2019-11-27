@@ -410,7 +410,7 @@ def bkapp(doc):
 
     # Slider to change the timestep of the pollution data visualised
     time_slider = Slider(start=0, end=end_step, value=36000, step=step_size,
-                    title="Time (s)")
+                         title="Time (s)")
     time_slider.on_change('value', update_time_slider)
 
     # Play button to move the slider for the pollution timeseries
