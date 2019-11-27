@@ -40,6 +40,7 @@ Run the App Locally
 2. Install the python requirements: `pip install -r requirements.txt`
 3. Download data modules: `git submodule update --init --recursive`
 4. Run flask server from top dir of the repo: `python water/main.py`
+5. Open http://localhost:8000 in a browser
 
 Deploying the App
 -------
