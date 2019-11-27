@@ -139,7 +139,7 @@ def bkapp(doc):
     def update():
         """Update the appearance of the pollution dynamics network,
         including node and edge colors"""
-        timestep = slider.value
+        timestep = time_slider.value
         # Get pollution for each node for the given injection site and timestep
         series = pollution_series(scenario, timestep)
 
@@ -207,7 +207,7 @@ def bkapp(doc):
         node_type = node_type_select.value
         type_div.text = node_type_html(node_type, type_highlight_color)
 
-    def update_slider(attrname, old, new):
+    def update_time_slider(attrname, old, new):
         """Time slider callback.
         As node colours depend on many widget values, this callback simply
         calls the update function."""
@@ -237,14 +237,15 @@ def bkapp(doc):
             )
 
     def step():
-        """Move the slider by one step"""
-        timestep = slider.value + step_size
+        """Move the time slider by one step"""
+        timestep = time_slider.value + step_size
         if timestep > end_step:
             timestep = start_step
-        slider.value = timestep
+        time_slider.value = timestep
 
     def animate():
-        """Move the slider at animation_speed ms/frame on play button click"""
+        """Move the time slider at animation_speed ms/frame
+        on play button click"""
         nonlocal callback_id
         nonlocal animation_speed
         if play_button.label == BUTTON_LABEL_PAUSED:
@@ -408,9 +409,9 @@ def bkapp(doc):
     pollution_history_plot.add_layout(timestep_span)
 
     # Slider to change the timestep of the pollution data visualised
-    slider = Slider(start=0, end=end_step, value=0, step=step_size,
+    time_slider = Slider(start=0, end=end_step, value=0, step=step_size,
                     title="Time (s)")
-    slider.on_change('value', update_slider)
+    time_slider.on_change('value', update_time_slider)
 
     # Play button to move the slider for the pollution timeseries
     play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
@@ -488,7 +489,7 @@ def bkapp(doc):
         Div(text="Pollution Spread"),
         row(play_button, speed_radio,
             sizing_mode="scale_height"),
-        slider,
+        time_slider,
         timer,
         width=220, sizing_mode="stretch_height"
     )
