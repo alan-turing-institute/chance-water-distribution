@@ -38,10 +38,10 @@ def get_networks():
 def get_network_files_path(network):
     if network in get_network_examples():
         return join(dirname(__file__), '../data',
-                        'examples/' + network)
+                    'examples/' + network)
     elif network in get_custom_networks():
         return join(dirname(__file__), '../data',
-                        network)
+                    network)
     else:
         raise ValueError('Selected network cannot be loaded, files missing')
 
@@ -58,7 +58,8 @@ def load_water_network(network):
     try:
         wn = wntr.network.WaterNetworkModel(filename)
     except FileNotFoundError:
-        raise FileNotFoundError("Please add the water network file: " + filename)
+        raise FileNotFoundError("Please add the water network file: " +
+                                filename)
 
     # Get the NetworkX graph
     G = wn.get_graph().to_undirected()
