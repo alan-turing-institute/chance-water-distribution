@@ -33,8 +33,8 @@ custom_network
 
 ```
 
-The `.inp` file is an [EPANET INP file, used by the wntr python package to build a water network model](https://wntr.readthedocs.io/en/latest/waternetworkmodel.html).
-
-For each node in the network that you want to show pollution spread starting from, add a pollution file with a simulation of pollution spread from that node. The file should be a pickle of a pandas dataframe containing pollution concentration for each node at each timestep for a 24hr period.
+1. The `.inp` file is an [EPANET INP file, used by the wntr python package to build a water network model](https://wntr.readthedocs.io/en/latest/waternetworkmodel.html).
+2. For each node in the network that you want to show pollution spread starting from, add a pollution file with a simulation of pollution spread from that node. The file should be a `.pkl` of a pandas dataframe containing pollution concentration for each node at each timestep for a 24hr period.
+3. *Optionally* add a file called `metadata.yml`. This should contain offset values for the graph network node coordinates that convert these to the actual latitude and longitude (see the example `ky2`). When this is included, the network is placed over a map.
 
 You can add multiple subdirectories to `water/data` if you have more than one network to display. They can be switched between with the "Network" widget in the top left corner of the flask/bokeh app.
