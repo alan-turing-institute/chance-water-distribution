@@ -31,12 +31,31 @@ def get_custom_networks():
     return custom_networks
 
 
+def get_networks():
+    return get_custom_networks() + get_network_examples()
+
+
+def get_network_files_path(network):
+    if network in get_network_examples():
+        return join(dirname(__file__), '../data',
+                        'examples/' + network)
+    elif network in get_custom_networks():
+        return join(dirname(__file__), '../data',
+                        network)
+    else:
+        raise ValueError('Selected network cannot be loaded, files missing')
+
+
 def load_water_network(network):
+    """Get data variables needed for the visualisation from the water network
+    .inp file"""
+
     # load .inp file
-    filename = join(dirname(__file__), '../data',
-                    'examples/' + network + '/' + network + '.inp')
+    file_path = get_network_files_path(network)
+    filename = file_path + '/' + network + '.inp'
 
     # Create water network
+    # try:
     wn = wntr.network.WaterNetworkModel(filename)
 
     # Get the NetworkX graph
@@ -91,9 +110,7 @@ def load_water_network(network):
     y_offset = 0
     include_map = False
     try:
-        metadata_file = join(dirname(__file__), '../data', 'examples/'
-                                                + network
-                                                + '/metadata.yml')
+        metadata_file = file_path + '/metadata.yml'
         with open(metadata_file, 'r') as stream:
             metadata = yaml.safe_load(stream)
             if 'map' in metadata:
@@ -115,8 +132,8 @@ def load_water_network(network):
 def load_pollution_dynamics(network):
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
-    files = join(dirname(__file__), '../data',
-                 'examples/' + network + '/' + network + '')
+
+    files = get_network_files_path(network) + '/' + network
     # Determine max and min pollution values and all node names
     max_pols = []
     min_pols = []
