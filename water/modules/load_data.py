@@ -44,8 +44,7 @@ def load_water_network(network):
             G.nodes[node]['elevation'] = 'N/A'
         try:
             base_demands = []
-            # TODO: For some reason this is a list, but in Kentucky 2
-            # data there is only ever a single base demand value
+            # Base demand value used to weight node size
             for timeseries in wn.get_node(node).demand_timeseries_list:
                 base_demands.append(timeseries.base_value)
             base_demand = mean(base_demands)
