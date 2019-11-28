@@ -55,8 +55,10 @@ def load_water_network(network):
     filename = file_path + '/' + network + '.inp'
 
     # Create water network
-    # try:
-    wn = wntr.network.WaterNetworkModel(filename)
+    try:
+        wn = wntr.network.WaterNetworkModel(filename)
+    except FileNotFoundError:
+        raise FileNotFoundError("Please add the water network file: " + filename)
 
     # Get the NetworkX graph
     G = wn.get_graph().to_undirected()
