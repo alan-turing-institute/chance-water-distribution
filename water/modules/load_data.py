@@ -8,6 +8,8 @@ import yaml
 
 
 def get_network_examples():
+    """Get the names of example water networks with data files present
+    in water/data/examples as a list of strings"""
     examples = []
     dir = join(dirname(__file__), '../data',
                'examples/')
@@ -16,6 +18,17 @@ def get_network_examples():
             examples.append(filename)
     examples.sort()
     return examples
+
+
+def get_custom_networks():
+    """Get the names of any non-example water networks added to water/data
+    as a list of strings"""
+    custom_networks = []
+    dir = join(dirname(__file__), '../data')
+    for filename in listdir(dir):
+        if isdir(join(dir, filename)) and filename != 'examples':
+            custom_networks.append(filename)
+    return custom_networks
 
 
 def load_water_network(network):
