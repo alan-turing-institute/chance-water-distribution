@@ -8,6 +8,8 @@ import yaml
 
 
 def get_network_examples():
+    """Get the names of example water networks with data files present
+    in water/data/examples as a list of strings"""
     examples = []
     dir = join(dirname(__file__), '../data',
                'examples/')
@@ -18,13 +20,46 @@ def get_network_examples():
     return examples
 
 
+def get_custom_networks():
+    """Get the names of any non-example water networks added to water/data
+    as a list of strings"""
+    custom_networks = []
+    dir = join(dirname(__file__), '../data')
+    for filename in listdir(dir):
+        if isdir(join(dir, filename)) and filename != 'examples':
+            custom_networks.append(filename)
+    return custom_networks
+
+
+def get_networks():
+    return get_custom_networks() + get_network_examples()
+
+
+def get_network_files_path(network):
+    if network in get_network_examples():
+        return join(dirname(__file__), '../data',
+                    'examples/' + network)
+    elif network in get_custom_networks():
+        return join(dirname(__file__), '../data',
+                    network)
+    else:
+        raise ValueError('Selected network cannot be loaded, files missing')
+
+
 def load_water_network(network):
+    """Get data variables needed for the visualisation from the water network
+    .inp file"""
+
     # load .inp file
-    filename = join(dirname(__file__), '../data',
-                    'examples/' + network + '/' + network + '.inp')
+    file_path = get_network_files_path(network)
+    filename = file_path + '/' + network + '.inp'
 
     # Create water network
-    wn = wntr.network.WaterNetworkModel(filename)
+    try:
+        wn = wntr.network.WaterNetworkModel(filename)
+    except FileNotFoundError:
+        raise FileNotFoundError("Please add the water network file: " +
+                                filename)
 
     # Get the NetworkX graph
     G = wn.get_graph().to_undirected()
@@ -44,8 +79,7 @@ def load_water_network(network):
             G.nodes[node]['elevation'] = 'N/A'
         try:
             base_demands = []
-            # TODO: For some reason this is a list, but in Kentucky 2
-            # data there is only ever a single base demand value
+            # Base demand value used to weight node size
             for timeseries in wn.get_node(node).demand_timeseries_list:
                 base_demands.append(timeseries.base_value)
             base_demand = mean(base_demands)
@@ -79,9 +113,7 @@ def load_water_network(network):
     y_offset = 0
     include_map = False
     try:
-        metadata_file = join(dirname(__file__), '../data', 'examples/'
-                                                + network
-                                                + '/metadata.yml')
+        metadata_file = file_path + '/metadata.yml'
         with open(metadata_file, 'r') as stream:
             metadata = yaml.safe_load(stream)
             if 'map' in metadata:
@@ -103,8 +135,8 @@ def load_water_network(network):
 def load_pollution_dynamics(network):
     # Load pollution dynamics
     # Create pollution as a global var used in some functions
-    files = join(dirname(__file__), '../data',
-                 'examples/' + network + '/' + network + '')
+
+    files = get_network_files_path(network) + '/' + network
     # Determine max and min pollution values and all node names
     max_pols = []
     min_pols = []

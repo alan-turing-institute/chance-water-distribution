@@ -21,7 +21,7 @@ from flask import Flask, render_template, request
 from modules.html_formatter import (timer_html, pollution_history_html,
                                     pollution_location_html, node_type_html)
 from modules.load_data import (load_water_network, load_pollution_dynamics,
-                               get_network_examples)
+                               get_networks, get_custom_networks)
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
 from threading import Thread
@@ -50,6 +50,14 @@ def bkapp(doc):
 
     # Color of selected node type
     type_highlight_color = "purple"
+
+    # By default, we want example network ky2 to load into the bokeh app
+    # If however any custom networks are present, that a user has added
+    # make one of these the default selected network
+    default_network = 'ky2'
+    custom_networks = get_custom_networks()
+    if len(custom_networks) > 0:
+        default_network = custom_networks[0]
 
     def update_highlights():
         """Set the color and width for each node and edge in the graph."""
@@ -289,7 +297,7 @@ def bkapp(doc):
         return Range1d(x_lower, x_upper), Range1d(y_lower, y_upper)
 
     # Load the network dirnames
-    networks = get_network_examples()
+    networks = get_networks()
 
     # Get network from request
     args = doc.session_context.request.arguments
@@ -297,10 +305,10 @@ def bkapp(doc):
         network = args.get('network')[0].decode('utf8')
         if network not in networks:
             # If an invalid network is selected fall back to the default
-            network = networks[1]
+            network = default_network
     else:
         # If there is no request fall back to the deault
-        network = networks[1]
+        network = default_network
 
     G, locations, all_base_demands, include_map = load_water_network(network)
 
@@ -536,7 +544,7 @@ sockets, port = bind_sockets("127.0.0.1", 0)
 @app.route('/', methods=['GET'])
 def bkapp_page():
     # Get network names, used in template
-    network_names = get_network_examples()
+    network_names = get_networks()
 
     # Get Network request argument
     current_network_name = request.args.get('network_name')
