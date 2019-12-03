@@ -321,7 +321,8 @@ def bkapp(doc):
                   y_range=y_bounds,
                   active_scroll='wheel_zoom',
                   x_axis_type="mercator",
-                  y_axis_type="mercator")
+                  y_axis_type="mercator",
+                  min_border_bottom=50)
 
     # Add map to plot if specified
     if include_map:
@@ -407,7 +408,8 @@ def bkapp(doc):
     pollution_history_plot = figure(
         x_range=Range1d(0, 0),
         y_range=Range1d(0, 0),
-        toolbar_location=None
+        toolbar_location=None,
+        min_border_bottom=50
         )
     pollution_history_plot.line('time', 'pollution_value',
                                 source=pollution_history_source,
