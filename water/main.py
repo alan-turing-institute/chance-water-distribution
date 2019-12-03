@@ -407,7 +407,7 @@ def bkapp(doc):
     pollution_history_plot = figure(
         x_range=Range1d(0, 0),
         y_range=Range1d(0, 0),
-        active_scroll='wheel_zoom'
+        toolbar_location=None
         )
     pollution_history_plot.line('time', 'pollution_value',
                                 source=pollution_history_source,
