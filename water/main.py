@@ -368,6 +368,10 @@ def bkapp(doc):
     shadow_width = edge_width*1.5
     graph_shadow.edge_renderer.glyph = MultiLine(line_width="line_width",
                                                  line_color="line_color")
+    graph_shadow.node_renderer.glyph = Circle(size=0.1,
+                                              fill_color="black",
+                                              line_color="black",
+                                              line_width=1)
 
     # Green hover for both nodes and edges
     hover_color = '#abdda4'
