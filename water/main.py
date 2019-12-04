@@ -130,8 +130,9 @@ def bkapp(doc):
     def update_pollution_history():
         history_node = pollution_history_select.value
         history = pollution_history(scenario, history_node)
-        pollution_history_source.data['time'] = history.index
-        pollution_history_source.data['pollution_value'] = history.values
+        # Set these at the same time to avoid bokeh user error
+        pollution_history_source.data = {'time': history.index,
+                                         'pollution_value': history.values}
         if history_node != 'None':
             y_end = max(history.values)
             if y_end == 0:  # Bokeh can't render the plot correctly
@@ -524,11 +525,8 @@ def bkapp(doc):
 
     # Initialise
     scenario = pollution_scenario(pollution, pollution_injection_select.value)
-    history_node = pollution[start_node].keys()[0]
-    history = pollution_history(scenario, history_node)
-    pollution_history_source.data['time'] = history.index
-    pollution_history_source.data['pollution_value'] = history.values
     animation_speed = speeds[speed_radio.active]
+    update_pollution_history()
     update_highlights()
     update()
 
