@@ -8,6 +8,7 @@ from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
                           Slider, Span, Button, ColorBar, LogTicker,
                           ColumnDataSource)
+from bokeh.models.annotations import Title
 from bokeh.models.widgets import Div, Select, RadioGroup
 from bokeh.plotting import figure
 from bokeh.server.server import BaseServer
@@ -183,6 +184,8 @@ def bkapp(doc):
         history_node = new
         html = pollution_history_html(history_node, highlight_color)
         pollution_history_node_div.text = html
+        title = "Pollution History Plot for Node " + history_node
+        pollution_history_plot.title = Title(text=title)
 
         if old == "None" and new != "None":
             # Include history plot in layout for the graph and widgets
