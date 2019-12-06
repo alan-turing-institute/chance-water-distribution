@@ -154,7 +154,7 @@ def load_pollution_dynamics(network):
                 try:  # below will error for a df where all values zero
                     min_pols.append(np.min(v[v > 0]))
                 except ValueError:
-                    min_pols.append(0)
+                    pass
 
     max_pol = np.max(max_pols)
     min_pol = np.min(min_pols)

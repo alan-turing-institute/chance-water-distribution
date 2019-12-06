@@ -8,6 +8,7 @@ from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
                           Slider, Span, Button, ColorBar, LogTicker,
                           ColumnDataSource)
+from bokeh.models.annotations import Title
 from bokeh.models.widgets import Div, Select, RadioGroup
 from bokeh.plotting import figure
 from bokeh.server.server import BaseServer
@@ -130,8 +131,9 @@ def bkapp(doc):
     def update_pollution_history():
         history_node = pollution_history_select.value
         history = pollution_history(scenario, history_node)
-        pollution_history_source.data['time'] = history.index
-        pollution_history_source.data['pollution_value'] = history.values
+        # Set these at the same time to avoid bokeh user error
+        pollution_history_source.data = {'time': history.index,
+                                         'pollution_value': history.values}
         if history_node != 'None':
             y_end = max(history.values)
             if y_end == 0:  # Bokeh can't render the plot correctly
@@ -163,7 +165,13 @@ def bkapp(doc):
         for node1, node2 in G.edges():
             node1_pollution = series[node1]
             node2_pollution = series[node2]
-            edge_values.append((node1_pollution + node2_pollution) / 2.)
+            # The edge color should be the mean of the connected nodes
+            # except when one node is zero, which indicates pollution
+            # is yet to spread through that edge (pipe)
+            if node1_pollution == 0 or node2_pollution == 0:
+                edge_values.append(0)
+            else:
+                edge_values.append((node1_pollution + node2_pollution) / 2.)
         graph.edge_renderer.data_source.data['colors'] = edge_values
 
         # Update timestep span on pollution history plot
@@ -176,6 +184,8 @@ def bkapp(doc):
         history_node = new
         html = pollution_history_html(history_node, highlight_color)
         pollution_history_node_div.text = html
+        title = "Pollution History Plot for Node " + history_node
+        pollution_history_plot.title = Title(text=title)
 
         if old == "None" and new != "None":
             # Include history plot in layout for the graph and widgets
@@ -321,7 +331,8 @@ def bkapp(doc):
                   y_range=y_bounds,
                   active_scroll='wheel_zoom',
                   x_axis_type="mercator",
-                  y_axis_type="mercator")
+                  y_axis_type="mercator",
+                  min_border_bottom=50)
 
     # Add map to plot if specified
     if include_map:
@@ -366,6 +377,10 @@ def bkapp(doc):
     shadow_width = edge_width*1.5
     graph_shadow.edge_renderer.glyph = MultiLine(line_width="line_width",
                                                  line_color="line_color")
+    graph_shadow.node_renderer.glyph = Circle(size=0.1,
+                                              fill_color="black",
+                                              line_color="black",
+                                              line_width=1)
 
     # Green hover for both nodes and edges
     hover_color = '#abdda4'
@@ -407,7 +422,8 @@ def bkapp(doc):
     pollution_history_plot = figure(
         x_range=Range1d(0, 0),
         y_range=Range1d(0, 0),
-        active_scroll='wheel_zoom'
+        toolbar_location=None,
+        min_border_bottom=50
         )
     pollution_history_plot.line('time', 'pollution_value',
                                 source=pollution_history_source,
@@ -522,11 +538,8 @@ def bkapp(doc):
 
     # Initialise
     scenario = pollution_scenario(pollution, pollution_injection_select.value)
-    history_node = pollution[start_node].keys()[0]
-    history = pollution_history(scenario, history_node)
-    pollution_history_source.data['time'] = history.index
-    pollution_history_source.data['pollution_value'] = history.values
     animation_speed = speeds[speed_radio.active]
+    update_pollution_history()
     update_highlights()
     update()
 
