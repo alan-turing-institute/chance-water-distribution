@@ -164,7 +164,13 @@ def bkapp(doc):
         for node1, node2 in G.edges():
             node1_pollution = series[node1]
             node2_pollution = series[node2]
-            edge_values.append((node1_pollution + node2_pollution) / 2.)
+            # The edge color should be the mean of the connected nodes
+            # except when one node is zero, which indicates pollution
+            # is yet to spread through that edge (pipe)
+            if node1_pollution == 0 or node2_pollution == 0:
+                edge_values.append(0)
+            else:
+                edge_values.append((node1_pollution + node2_pollution) / 2.)
         graph.edge_renderer.data_source.data['colors'] = edge_values
 
         # Update timestep span on pollution history plot
