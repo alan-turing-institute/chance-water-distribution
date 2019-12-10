@@ -1,8 +1,9 @@
 import asyncio
-from bokeh.application import Application
-from bokeh.application.handlers import FunctionHandler
-from bokeh.embed import server_document
+# from bokeh.application import Application
+# from bokeh.application.handlers import FunctionHandler
+# from bokeh.embed import server_curdoc()ument
 from bokeh.events import Tap
+from bokeh.io import curdoc
 from bokeh.layouts import row, column
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
@@ -11,9 +12,9 @@ from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
 from bokeh.models.annotations import Title
 from bokeh.models.widgets import Div, Select, RadioGroup
 from bokeh.plotting import figure
-from bokeh.server.server import BaseServer
-from bokeh.server.tornado import BokehTornado
-from bokeh.server.util import bind_sockets
+# from bokeh.server.server import BaseServer
+# from bokeh.server.tornado import BokehTornado
+# from bokeh.server.util import bind_sockets
 from bokeh.tile_providers import get_provider, Vendors
 from bokeh.transform import log_cmap
 from collections import defaultdict
@@ -25,14 +26,14 @@ from modules.load_data import (load_water_network, load_pollution_dynamics,
                                get_networks, get_custom_networks)
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
-from threading import Thread
-from tornado.ioloop import IOLoop
-from tornado.httpserver import HTTPServer
+# from threading import Thread
+# from tornado.ioloop import IOLoop
+# from tornado.httpserver import HTTPServer
+#
+# app = Flask(__name__)
 
-app = Flask(__name__)
 
-
-def bkapp(doc):
+def launch(network):
     callback_id = None
     # Labels for the play/pause button in paused and playing states
     # respectively
@@ -51,14 +52,6 @@ def bkapp(doc):
 
     # Color of selected node type
     type_highlight_color = "purple"
-
-    # By default, we want example network ky2 to load into the bokeh app
-    # If however any custom networks are present, that a user has added
-    # make one of these the default selected network
-    default_network = 'ky2'
-    custom_networks = get_custom_networks()
-    if len(custom_networks) > 0:
-        default_network = custom_networks[0]
 
     def update_highlights():
         """Set the color and width for each node and edge in the graph."""
@@ -268,10 +261,10 @@ def bkapp(doc):
         nonlocal animation_speed
         if play_button.label == BUTTON_LABEL_PAUSED:
             play_button.label = BUTTON_LABEL_PLAYING
-            callback_id = doc.add_periodic_callback(step, animation_speed)
+            callback_id = curdoc().add_periodic_callback(step, animation_speed)
         elif play_button.label == BUTTON_LABEL_PLAYING:
             play_button.label = BUTTON_LABEL_PAUSED
-            doc.remove_periodic_callback(callback_id)
+            curdoc().remove_periodic_callback(callback_id)
 
     def update_speed(attrname, old, new):
         """Adjust the animation speed"""
@@ -283,8 +276,8 @@ def bkapp(doc):
 
         # If animation is playing recreate the periodic callback
         if play_button.label == BUTTON_LABEL_PLAYING:
-            doc.remove_periodic_callback(callback_id)
-            callback_id = doc.add_periodic_callback(step, animation_speed)
+            curdoc().remove_periodic_callback(callback_id)
+            callback_id = curdoc().add_periodic_callback(step, animation_speed)
 
     def plot_bounds(locations):
         # Get lists of node locations
@@ -307,18 +300,18 @@ def bkapp(doc):
         return Range1d(x_lower, x_upper), Range1d(y_lower, y_upper)
 
     # Load the network dirnames
-    networks = get_networks()
+    # networks = get_networks()
 
     # Get network from request
-    args = doc.session_context.request.arguments
-    if 'network' in args:
-        network = args.get('network')[0].decode('utf8')
-        if network not in networks:
-            # If an invalid network is selected fall back to the default
-            network = default_network
-    else:
-        # If there is no request fall back to the deault
-        network = default_network
+    # args = doc.session_context.request.arguments
+    # if 'network' in args:
+    #     network = args.get('network')[0].decode('utf8')
+    #     if network not in networks:
+    #         # If an invalid network is selected fall back to the default
+    #         network = default_network
+    # else:
+    #     # If there is no request fall back to the deault
+    #     network = default_network
 
     G, locations, all_base_demands, include_map = load_water_network(network)
 
@@ -506,6 +499,7 @@ def bkapp(doc):
 
     # Create menu bar
     menu_bar = column(
+        network_select,
         row(pollution_history_select, pollution_history_node_div,
             sizing_mode="scale_height"),
         row(pollution_injection_select, pollution_location_div,
@@ -543,49 +537,76 @@ def bkapp(doc):
     update_highlights()
     update()
 
-    doc.add_root(layout)
+    curdoc().clear()
+    curdoc().add_root(layout)
+    curdoc().title = "Water Network Pollution"
 
+
+def switch_network(attrname, old, new):
+    """Switch the water network to the selected"""
+    network = new
+    launch(network)
+
+
+# By default, we want example network ky2 to load into the bokeh app
+# If however any custom networks are present, that a user has added
+# make one of these the default selected network
+default_network = 'ky2'
+custom_networks = get_custom_networks()
+if len(custom_networks) > 0:
+    default_network = custom_networks[0]
+
+# Load the network dirnames
+networks = get_networks()
+
+# Create a selector for the water network example
+network_select = Select(title="Choose Water Network",
+                        value=default_network,
+                        options=networks)
+network_select.on_change('value', switch_network)
+
+launch(default_network)
 
 # can't use shortcuts here, since we are passing to low level BokehTornado
-bkapp = Application(FunctionHandler(bkapp))
+# bkapp = Application(FunctionHandler(bkapp))
 
 # This is so that if this app is run using something like "gunicorn -w 4" then
 # each process will listen on its own port
-sockets, port = bind_sockets("127.0.0.1", 0)
+# sockets, port = bind_sockets("127.0.0.1", 0)
 
 
-@app.route('/', methods=['GET'])
-def bkapp_page():
-    # Get network names, used in template
-    network_names = get_networks()
-
-    # Get Network request argument
-    current_network_name = request.args.get('network_name')
-    # Create bokeh server, passing http request for network
-    script = server_document('http://localhost:{:d}/bkapp'.format(port),
-                             arguments={'network': current_network_name})
-    return render_template("embed.html", script=script,
-                           title="Water Network Pollution",
-                           network_names=network_names,
-                           current_network_name=current_network_name)
-
-
-def bk_worker():
-    asyncio.set_event_loop(asyncio.new_event_loop())
-
-    bokeh_tornado = BokehTornado(
-        {'/bkapp': bkapp},
-        extra_websocket_origins=["localhost:8000"]
-        )
-    bokeh_http = HTTPServer(bokeh_tornado)
-    bokeh_http.add_sockets(sockets)
-
-    server = BaseServer(IOLoop.current(), bokeh_tornado, bokeh_http)
-    server.start()
-    server.io_loop.start()
+# @app.route('/', methods=['GET'])
+# def bkapp_page():
+#     # Get network names, used in template
+#     network_names = get_networks()
+#
+#     # Get Network request argument
+#     current_network_name = request.args.get('network_name')
+#     # Create bokeh server, passing http request for network
+#     script = server_document('http://localhost:{:d}/bkapp'.format(port),
+#                              arguments={'network': current_network_name})
+#     return render_template("embed.html", script=script,
+#                            title="Water Network Pollution",
+#                            network_names=network_names,
+#                            current_network_name=current_network_name)
 
 
-Thread(target=bk_worker).start()
-
-if __name__ == '__main__':
-    app.run(port=8000)
+# def bk_worker():
+#     asyncio.set_event_loop(asyncio.new_event_loop())
+#
+#     bokeh_tornado = BokehTornado(
+#         {'/bkapp': bkapp},
+#         extra_websocket_origins=["localhost:8000"]
+#         )
+#     bokeh_http = HTTPServer(bokeh_tornado)
+#     bokeh_http.add_sockets(sockets)
+#
+#     server = BaseServer(IOLoop.current(), bokeh_tornado, bokeh_http)
+#     server.start()
+#     server.io_loop.start()
+#
+#
+# Thread(target=bk_worker).start()
+#
+# if __name__ == '__main__':
+#     app.run(port=8000)
