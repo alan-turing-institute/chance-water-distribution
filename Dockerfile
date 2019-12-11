@@ -7,4 +7,4 @@ COPY requirements.txt /requirements.txt
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-CMD bokeh serve --show water
+CMD bokeh serve water
