@@ -1,7 +1,6 @@
 ansible-lint
 bokeh
 colorcet
-flask
 networkx
 numpy
 pandas
