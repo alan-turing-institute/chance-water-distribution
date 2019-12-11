@@ -36,27 +36,17 @@ The data for contamination spread scenarios is pre-computed and coupled with inf
 1. Clone the repository: `git clone https://github.com/alan-turing-institute/chance-water-distribution`
 2. Install the python requirements: `pip install -r requirements.txt`
 3. Download data modules: `git submodule update --init --recursive`
-4. Run flask server from top dir of the repo: `python water/main.py`
-5. Open http://localhost:8000 in a browser
-
-## Deploying the App
-
-When deploying the app Flask's built in server should not be used. Suggestions
-for WSGI servers that can be used with Flask can be found
-[here](https://flask.palletsprojects.com/en/1.0.x/deploying/). For example,
-gunicorn can be used by
-```
-pip install gunicorn
-cd water
-gunicorn -w 4 main:app
-```
+4. Run bokeh server from top dir of the repo: `bokeh serve --show water`
+5. The app should open in a browser window, otherwise navigate to http://localhost:5006
 
 ## Docker Container
 
-1. Pull from Docker Hub: `docker pull turinginst/chance-water`
-2. Run the container `docker run -p 8000:8000 turinginst/chance-water`
-3. Open http://localhost:8000 in a browser
+1. Pull from Docker Hub: `docker pull turinginst/chance-water:no-flask`
+2. Run the container `docker run -p 5006:5006 turinginst/chance-water:no-flask`
+3. Open http://localhost:5006 in a browser
 
 The image is [hosted on DockerHub](https://hub.docker.com/repository/docker/turinginst/chance-water/general) and is set to build from pushes to the master branch of this repo.
 
 ## [Adding custom water networks](water/data)
+
+## [Deploying the App](ansible/)
