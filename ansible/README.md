@@ -10,7 +10,6 @@ Basic configuration of the server for security (for example restricting SSH
 access and blocking unused ports) is beyond the scope of this playbook and
 appropriate steps should be taken.
 
-
 ## Usage
 
 Servers to deploy the webapp to should be in the 'appservers' group of your
