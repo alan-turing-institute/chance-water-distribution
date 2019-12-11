@@ -10,12 +10,20 @@ Loading new networks and pollution data
 
 You can follow these modified instructions to load a custom water network with pollution timeseries node data similar to the examples.
 
+**With Docker**, where `custom_network` is a directory with the files specified below:
+
+1. Pull from Docker Hub: `docker pull turinginst/chance-water:no-flask`
+2. Run the container `docker run -p 5006:5006 -v ~/path/to/custom_network:/water/data/custom_network turinginst/chance-water:no-flask`
+3. Open http://localhost:5006 in a browser
+
+**OR With clone of this repo:**
+
 1. Clone the repository: `git clone https://github.com/alan-turing-institute/chance-water-distribution`
 2. Install the python requirements: `pip install -r requirements.txt`
 3. If you want to include the example networks, download the data modules: `git submodule update --init --recursive`
 4. **Include a new subdirectory within `chance-water-distribution/water/data` with the files specified below (e.g. called custom_network)**
-5. Run flask server from top dir of the repo: `python water/main.py`
-6. Open http://localhost:8000 in a browser
+5. Run bokeh server from top dir of the repo: `bokeh serve --show water`
+6. The app should open in a browser window, otherwise navigate to http://localhost:5006
 
 ### Custom network directory structure
 
