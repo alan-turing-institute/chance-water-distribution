@@ -5,6 +5,7 @@ from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges
 from bokeh.models import (Range1d, MultiLine, Circle, TapTool, HoverTool,
                           Slider, Span, Button, ColorBar, LogTicker,
                           ColumnDataSource)
+from bokeh.models.annotations import Title
 from bokeh.models.widgets import Div, Select, RadioGroup
 from bokeh.plotting import figure
 from bokeh.tile_providers import get_provider, Vendors
@@ -14,23 +15,35 @@ import colorcet as cc
 from modules.html_formatter import (timer_html, pollution_history_html,
                                     pollution_location_html, node_type_html)
 from modules.load_data import (load_water_network, load_pollution_dynamics,
-                               get_network_examples)
+                               get_networks, get_custom_networks)
 from modules.pollution import (pollution_series, pollution_history,
                                pollution_scenario)
-import pandas as pd
 
 
 def launch(network):
-    """Set up the bokeh server app for a particular network.
-    Takes as input a string corresponding to the name of the
-    data dir under water/data/examples/ """
+    callback_id = None
+    # Labels for the play/pause button in paused and playing states
+    # respectively
+    BUTTON_LABEL_PAUSED = '► Start Pollution'
+    BUTTON_LABEL_PLAYING = '❚❚ Pause'
+    # Node scaling factor
+    NODE_SCALING = 15
 
-    global scenario
+    # Color of injection node (Light blue)
+    # (color used by injection button, update in CSS too on change)
+    injection_color = "#34c3eb"
+
+    # Color of selected node (bright green)
+    # (color used by highlight button, update in CSS too on change)
+    highlight_color = "#07db1c"
+
+    # Color of selected node type
+    type_highlight_color = "purple"
 
     def update_highlights():
-        """Set the color and width for each node in the graph."""
+        """Set the color and width for each node and edge in the graph."""
 
-        # Widths for edges of highlighted and normal nodes
+        # Widths for outlines of highlighted and normal nodes
         highlight_width = 3.0
         normal_width = 2.0
 
@@ -43,7 +56,7 @@ def launch(network):
             'Tank': 'green'
             })
 
-        injection = pollution_location_select.value
+        injection = pollution_injection_select.value
         node_to_highlight = pollution_history_select.value
         type_highlight = node_type_select.value
 
@@ -67,14 +80,40 @@ def launch(network):
                     outline_colors.append(colors[node_type])
                 outline_widths.append(normal_width)
 
+        # Set colors for edges so that those connected to a colored node
+        # are also that color, to increase visibility
+        edge_colors = []
+        edge_widths = []
+        highlight_edge_width = shadow_width + 1.0
+        for edge in G.edges():
+            if edge[0] == injection or edge[1] == injection:
+                edge_colors.append(injection_color)
+                edge_widths.append(highlight_edge_width)
+            elif edge[0] == node_to_highlight or edge[1] == node_to_highlight:
+                edge_colors.append(highlight_color)
+                edge_widths.append(highlight_edge_width)
+            else:
+                type1 = G.nodes[edge[0]]['type']
+                type2 = G.nodes[edge[1]]['type']
+                if type1 == type_highlight or type2 == type_highlight:
+                    edge_colors.append(type_highlight_color)
+                else:
+                    edge_colors.append('gray')
+                edge_widths.append(shadow_width)
+
         data = graph.node_renderer.data_source.data
         data['line_color'], data['line_width'] = outline_colors, outline_widths
+
+        edge_data = graph_shadow.edge_renderer.data_source.data
+        edge_data['line_color'], edge_data['line_width'] = (edge_colors,
+                                                            edge_widths)
 
     def update_pollution_history():
         history_node = pollution_history_select.value
         history = pollution_history(scenario, history_node)
-        pollution_history_source.data['time'] = history.index
-        pollution_history_source.data['pollution_value'] = history.values
+        # Set these at the same time to avoid bokeh user error
+        pollution_history_source.data = {'time': history.index,
+                                         'pollution_value': history.values}
         if history_node != 'None':
             y_end = max(history.values)
             if y_end == 0:  # Bokeh can't render the plot correctly
@@ -90,7 +129,7 @@ def launch(network):
     def update():
         """Update the appearance of the pollution dynamics network,
         including node and edge colors"""
-        timestep = slider.value
+        timestep = time_slider.value
         # Get pollution for each node for the given injection site and timestep
         series = pollution_series(scenario, timestep)
 
@@ -106,7 +145,13 @@ def launch(network):
         for node1, node2 in G.edges():
             node1_pollution = series[node1]
             node2_pollution = series[node2]
-            edge_values.append((node1_pollution + node2_pollution) / 2.)
+            # The edge color should be the mean of the connected nodes
+            # except when one node is zero, which indicates pollution
+            # is yet to spread through that edge (pipe)
+            if node1_pollution == 0 or node2_pollution == 0:
+                edge_values.append(0)
+            else:
+                edge_values.append((node1_pollution + node2_pollution) / 2.)
         graph.edge_renderer.data_source.data['colors'] = edge_values
 
         # Update timestep span on pollution history plot
@@ -119,6 +164,8 @@ def launch(network):
         history_node = new
         html = pollution_history_html(history_node, highlight_color)
         pollution_history_node_div.text = html
+        title = "Pollution History Plot for Node " + history_node
+        pollution_history_plot.title = Title(text=title)
 
         if old == "None" and new != "None":
             # Include history plot in layout for the graph and widgets
@@ -145,38 +192,38 @@ def launch(network):
         # want one
         first_clicked_node_int = nodes_clicked_ints[0]
         clicked_node = list(G.nodes())[first_clicked_node_int]
-        if what_click_does.active == click_options['Pollution History']:
+        if what_click_does.active == click_options['Pollution History Plot']:
             pollution_history_select.value = clicked_node
-        if what_click_does.active == click_options['Pollution Injection']:
-            pollution_location_select.value = clicked_node
+        if what_click_does.active == click_options['Pollution Injection Node']:
+            pollution_injection_select.value = clicked_node
 
     def update_node_type_highlight(attrname, old, new):
         """Highlight node type drop down callback.
-        As node colours depend on many widget values, this callback
-        simply calls the update highlights function."""
+        As node colours depend on many widget values, this callback simply
+        calls the update highlights function."""
         update_highlights()
         node_type = node_type_select.value
         type_div.text = node_type_html(node_type, type_highlight_color)
 
-    def update_slider(attrname, old, new):
+    def update_time_slider(attrname, old, new):
         """Time slider callback.
-        As node colours depend on many widget values, this callback
-        simply calls the update function."""
+        As node colours depend on many widget values, this callback simply
+        calls the update function."""
         update()
 
     def update_injection(attrname, old, new):
         """Pollution injection node location drop down callback.
-        The global variable scenario, which holds the dataframe of pollution
+        The nonlocal variable scenario, which holds the dataframe of pollution
         dynamics is updated.
-        As the injection site affects both the node highlights and
-        pollution data, his callback calls both the update highlights
-        and the update functions"""
-        global scenario
+        As the injection site affects both the node highlights and pollution
+        data, his callback calls both the update highlights and the update
+        functions"""
+        nonlocal scenario
         scenario = pollution_scenario(pollution, new)
         update_highlights()
         update_pollution_history()
         update()
-        injection_node = pollution_location_select.value
+        injection_node = pollution_injection_select.value
         pollution_location_div.text = pollution_location_html(injection_node,
                                                               injection_color)
 
@@ -188,16 +235,17 @@ def launch(network):
             )
 
     def step():
-        """Move the slider by one step"""
-        timestep = slider.value + step_size
+        """Move the time slider by one step"""
+        timestep = time_slider.value + step_size
         if timestep > end_step:
             timestep = start_step
-        slider.value = timestep
+        time_slider.value = timestep
 
     def animate():
-        """Move the slider at animation_speed ms/frame on play button click"""
-        global callback_id
-        global animation_speed
+        """Move the time slider at animation_speed ms/frame
+        on play button click"""
+        nonlocal callback_id
+        nonlocal animation_speed
         if play_button.label == BUTTON_LABEL_PAUSED:
             play_button.label = BUTTON_LABEL_PLAYING
             callback_id = curdoc().add_periodic_callback(step, animation_speed)
@@ -207,8 +255,8 @@ def launch(network):
 
     def update_speed(attrname, old, new):
         """Adjust the animation speed"""
-        global callback_id
-        global animation_speed
+        nonlocal callback_id
+        nonlocal animation_speed
 
         # Update animation speed
         animation_speed = speeds[new]
@@ -249,7 +297,8 @@ def launch(network):
                   y_range=y_bounds,
                   active_scroll='wheel_zoom',
                   x_axis_type="mercator",
-                  y_axis_type="mercator")
+                  y_axis_type="mercator",
+                  min_border_bottom=50)
 
     # Add map to plot if specified
     if include_map:
@@ -292,8 +341,12 @@ def launch(network):
     # against the map
     graph_shadow = from_networkx(G, locations)
     shadow_width = edge_width*1.5
-    graph_shadow.edge_renderer.glyph = MultiLine(line_width=shadow_width,
-                                                 line_color="gray")
+    graph_shadow.edge_renderer.glyph = MultiLine(line_width="line_width",
+                                                 line_color="line_color")
+    graph_shadow.node_renderer.glyph = Circle(size=0.1,
+                                              fill_color="black",
+                                              line_color="black",
+                                              line_width=1)
 
     # Green hover for both nodes and edges
     hover_color = '#abdda4'
@@ -335,7 +388,8 @@ def launch(network):
     pollution_history_plot = figure(
         x_range=Range1d(0, 0),
         y_range=Range1d(0, 0),
-        active_scroll='wheel_zoom'
+        toolbar_location=None,
+        min_border_bottom=50
         )
     pollution_history_plot.line('time', 'pollution_value',
                                 source=pollution_history_source,
@@ -345,16 +399,16 @@ def launch(network):
     pollution_history_plot.add_layout(timestep_span)
 
     # Slider to change the timestep of the pollution data visualised
-    slider = Slider(start=0, end=end_step, value=0, step=step_size,
-                    title="Time (s)")
-    slider.on_change('value', update_slider)
+    time_slider = Slider(start=0, end=end_step, value=36000, step=step_size,
+                         title="Time (s)")
+    time_slider.on_change('value', update_time_slider)
 
     # Play button to move the slider for the pollution timeseries
     play_button = Button(label=BUTTON_LABEL_PAUSED, button_type="success")
     play_button.on_click(animate)
 
     # Menu to highlight nodes green and display pollution history
-    pollution_history_select = Select(title="Pollution History Node",
+    pollution_history_select = Select(title="Pollution History Plot Node",
                                       value="None",
                                       options=['None']+list(G.nodes()))
     pollution_history_select.on_change('value', update_pollution_history_node)
@@ -375,13 +429,13 @@ def launch(network):
     type_div = Div(text=node_type_html())
 
     # Dropdown menu to choose pollution start location
-    pollution_location_select = Select(title="Pollution Injection Node",
-                                       value=injection_nodes[0],
-                                       options=injection_nodes)
-    pollution_location_select.on_change('value', update_injection)
+    pollution_injection_select = Select(title="Pollution Injection Node",
+                                        value=injection_nodes[0],
+                                        options=injection_nodes)
+    pollution_injection_select.on_change('value', update_injection)
 
     # Create a div to show the name of pollution start node
-    injection_node = pollution_location_select.value
+    injection_node = pollution_injection_select.value
     pol_html = pollution_location_html(injection_node, injection_color)
     pollution_location_div = Div(text=pol_html)
 
@@ -394,8 +448,10 @@ def launch(network):
                               title="Base Node Size")
     node_size_slider.on_change('value', update_node_size)
 
-    # Speed selection dropdown widget
+    # Animation speeds in ms per frame
+    speeds = [1000, 500, 100]
     speed_menu = ['Slow', 'Medium', 'Fast']
+    # Speed radio group widget
     speed_radio = RadioGroup(labels=speed_menu, active=1)
     speed_radio.on_change('active', update_speed)
 
@@ -403,28 +459,33 @@ def launch(network):
     timer = Div(text="")
 
     # Create a radio button to choose what clicking a node does
-    click_options_menu = ['Pollution History', 'Pollution Injection']
+    click_options_menu = ['Pollution History Plot', 'Pollution Injection Node']
     click_options = dict(zip(click_options_menu, [0, 1]))
     what_click_does = RadioGroup(
         labels=click_options_menu,
-        active=click_options['Pollution History'])
+        active=click_options['Pollution History Plot'])
+
+    # Create a div to go within the below menu that describes pollution spread
+    info = "<p>Pollution Spread Scenario:</p>"
+    info += "<p><i>Pollution injected at 10-11hr</i></p>"
+    pollution_spread_info = Div(text=info)
 
     # Create menu bar
     menu_bar = column(
         network_select,
         row(pollution_history_select, pollution_history_node_div,
             sizing_mode="scale_height"),
-        row(pollution_location_select, pollution_location_div,
+        row(pollution_injection_select, pollution_location_div,
             sizing_mode="scale_height"),
         Div(text="Clicking a Node selects it as:"),
         what_click_does,
         row(node_type_select, type_div,
             sizing_mode="scale_height"),
         node_size_slider,
-        Div(text="Pollution Spread"),
+        pollution_spread_info,
         row(play_button, speed_radio,
             sizing_mode="scale_height"),
-        slider,
+        time_slider,
         timer,
         width=220, sizing_mode="stretch_height"
     )
@@ -443,11 +504,9 @@ def launch(network):
     )
 
     # Initialise
-    scenario = pollution_scenario(pollution, pollution_location_select.value)
-    history_node = pollution[start_node].keys()[0]
-    history = pollution_history(scenario, history_node)
-    pollution_history_source.data['time'] = history.index
-    pollution_history_source.data['pollution_value'] = history.values
+    scenario = pollution_scenario(pollution, pollution_injection_select.value)
+    animation_speed = speeds[speed_radio.active]
+    update_pollution_history()
     update_highlights()
     update()
 
@@ -462,39 +521,21 @@ def switch_network(attrname, old, new):
     launch(network)
 
 
-# Initialise
-callback_id = None
-# Animation speeds in ms per frame
-speeds = [1000, 500, 100]
-animation_speed = speeds[1]  # Medium speed by default
-scenario = pd.DataFrame()
-
-# Labels for the play/pause button in paused and playing states respectively
-BUTTON_LABEL_PAUSED = '► Start Pollution'
-BUTTON_LABEL_PLAYING = '❚❚ Pause'
-
-# Node scaling factor
-NODE_SCALING = 15
-
-# Color of injection node (Light blue)
-# (color used by injection button, update in CSS too on change)
-injection_color = "#34c3eb"
-
-# Color of selected node (bright green)
-# (color used by highlight button, update in CSS too on change)
-highlight_color = "#07db1c"
-
-# Color of selected node type
-type_highlight_color = "purple"
+# By default, we want example network ky2 to load into the bokeh app
+# If however any custom networks are present, that a user has added
+# make one of these the default selected network
+default_network = 'ky2'
+custom_networks = get_custom_networks()
+if len(custom_networks) > 0:
+    default_network = custom_networks[0]
 
 # Load the network dirnames
-networks = get_network_examples()
-network = networks[1]  # ky2
+networks = get_networks()
 
 # Create a selector for the water network example
 network_select = Select(title="Choose Water Network",
-                        value=network,
+                        value=default_network,
                         options=networks)
 network_select.on_change('value', switch_network)
 
-launch(network)
+launch(default_network)

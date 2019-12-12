@@ -69,4 +69,8 @@ def pollution_scenario(pollution, injection):
             timessteps. The columns of the dataframe are the node labels and
             the index is a set of timesteps.
     """
-    return pollution[injection]
+    try:
+        return pollution[injection]
+    except KeyError:
+        error = "Can't find .pkl file for pollution injection at " + injection
+        raise KeyError(error)
